@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+@theme inline {
+
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-card: #121212;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #a3a3a3;
+
+  --color-border: #262626;
+
+  --color-terminal: #ffffff;
+  --color-terminal-dim: #8a8a8a;
+
+  --color-level-0: #212121;
+  --color-level-1: #454545;
+  --color-level-2: #6b6b6b;
+  --color-level-3: #a3a3a3;
+  --color-level-4: #fafafa;
+
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+  --font-sans: var(--font-mono);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  --animate-fade-in: fade-in 0.3s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root {
+  --duration-fast: 150ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+@layer base {
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 110%;
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 130%;
+    }
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 140%;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    html {
+      font-size: 160%;
+    }
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    text-transform: lowercase;
+  }
+
+  input,
+  textarea {
+    text-transform: none;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background-color: var(--color-terminal);
+    color: var(--color-background);
+  }
+
+  :where(a, button, [tabindex]):focus-visible {
+    outline: 1px solid var(--color-terminal);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .link {
+    color: var(--color-terminal);
+    text-decoration: none;
+    text-underline-offset: 0.1875rem;
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .link:hover {
+    text-decoration: underline;
+  }
+
+  .prose {
+    text-transform: none;
+  }
+
+  .label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--color-muted-foreground);
+  }
+
+  .label-accent {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--color-terminal);
+  }
+
+  .prompt {
+    color: var(--color-terminal);
+    font-weight: 700;
+  }
+
+  .wordmark {
+    font-family: "Iosevka Nerd Font", "Iosevka NF", var(--font-iosevka-nerd),
+      var(--font-mono);
+  }
+
+  .control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-muted-foreground);
+    transition: border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .control:hover {
+    border-color: var(--color-terminal);
+    color: var(--color-terminal);
+  }
+
+  .control {
+    min-height: 44px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    opacity: 0.85;
+
+    transition: color var(--duration-fast) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .panel {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+  }
+
+  .heatmap {
+    container-type: inline-size;
+    --heatmap-cell: min(0.6875rem, 1.48214cqw);
+    --heatmap-gap: min(0.1875rem, 0.40465cqw);
+  }
+
+  @media (max-width: 639px) {
+    .heatmap {
+      --heatmap-cell: min(0.6875rem, 2.933cqw);
+      --heatmap-gap: min(0.1875rem, 0.8cqw);
+    }
+
+    .heatmap-blocks {
+      flex-direction: column;
+    }
+  }
+
+  @container (max-width: 767px) {
+    .heatmap-tight {
+      display: none;
+    }
+  }
+
+  .scroll-x {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+}
