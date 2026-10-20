@@ -2,7 +2,6 @@ export const site = {
   name: "Dibyanshu Moura",
   displayName: "Dibyanshu",
   handle: "dibyanshu",
-  role: "Student and aspiring data scientist",
   location: "India",
   intro:
     "I build practical software applications while working toward AI and machine learning — mostly full-stack, with APIs, databases, and AI-assisted features.",
@@ -15,6 +14,7 @@ export const site = {
     email: "work.dibyanshumoura@gmail.com",
     github: "https://github.com/DibyanshuMoura",
     linkedin: "https://www.linkedin.com/in/dibyanshu-moura-213170325",
+    x: "https://x.com/DibyanshuMoura",
   },
 } as const;
 
@@ -25,7 +25,7 @@ export const workingWith = [
   "Node.js",
   "Express.js",
   "MongoDB",
-  "cpp",
+  "C++",
   "SQL",
   "Git",
   "Linux",

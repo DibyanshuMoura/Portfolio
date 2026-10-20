@@ -13,11 +13,3 @@ export function SectionHeading({ file }: { file: string }) {
   );
 }
 
-export function RuleHeading({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="label-accent shrink-0">{label}</span>
-      <span className="h-px flex-1 bg-border" aria-hidden />
-    </div>
-  );
-}

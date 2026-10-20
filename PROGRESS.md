@@ -15,7 +15,7 @@
 ## 2. Current Status
 
 - Overall status: IN PROGRESS
-- Existing implementation: VERIFIED (all three routes built, restyled, and checked
+- Existing implementation: VERIFIED (all five routes built, restyled, and checked
   in a real browser as well as by build/lint; the contact endpoint checked by
   request, every form state driven in a real browser, and one message delivered
   through the form and read back out of the mailbox)
@@ -26,16 +26,20 @@
   is still statically prerendered; this handler is the only route that runs per
   request. Sending is verified locally end to end (§5); the deployed site still
   needs the `SMTP_*` variables (§7).
-- Routes: `/` (hero, activity, skills, why hire me, hire.me), `/work`,
-  `/gear`, `POST /api/contact`, plus Next's stock `/_not-found`
+- Routes: `/` (hero, activity, skills, why hire me, hire.me), `/builds`,
+  `/reads`, `/watches`, `/gear`, `POST /api/contact`, plus Next's stock
+  `/_not-found`
 - Content sources: `PROFILE.md` (facts) and the `src/lib/*` modules that render it
-- Assets: `Assets/Screenshots/` (WebP, imported by the app), `public/resume.pdf`
+- Assets: `Assets/Screenshots/` (WebP), `Assets/Covers/` (JPEG book jackets),
+  `Assets/Posters/` (WebP film and series posters), `Assets/Projects/` (WebP
+  project previews), `Assets/profile.png` (600×600), all imported by the app;
+  `public/resume.pdf`
 - Environment: `.env` (mode 600, git-ignored) holds `SMTP_HOST`, `SMTP_PORT`,
   `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `MAIL_TO`; `.env.example` documents
   the same names with the password left blank.
-- Version control: Git initialized on `main`; nothing committed yet.
-- Build status: PASSING (`npm run build`; `/`, `/work`, `/gear` prerendered as
-  static content)
+- Version control: Git initialized on `main`; the current work is uncommitted.
+- Build status: PASSING (`npm run build`; `/`, `/builds`, `/reads`, `/watches`,
+  `/gear` prerendered as static content)
 - Lint status: PASSING (`npm run lint`, no findings)
 - Test suite: none configured (see §7)
 
@@ -60,12 +64,11 @@
 ## 4. Implementation Notes
 
 - **Fonts.** The site is **monospace-first**: `JetBrains Mono` (via
-  `next/font/google`, so Next self-hosts it) sets body, headings, and UI. One
-  exception: the top bar's wordmark uses `Iosevka Nerd Font` through the
-  `.wordmark` class, with a locally installed copy preferred and a self-hosted
-  28 KB lowercase-subset (`.woff2`) as the fallback — the upstream Nerd Font TTF
-  is ~14 MB. The original `DESIGN.md` specified "Iosevka Nerd", which is not
-  available as a webfont; an intermediate pass used `Geist` + `JetBrains Mono`.
+  `next/font/google`, so Next self-hosts it) sets body, headings, and UI. The
+  Iosevka wordmark subset was deleted with the top-bar wordmark on 2026-10-20;
+  the tab favicon is a static PNG. The original `DESIGN.md` specified "Iosevka
+  Nerd", which is not available as a webfont; an intermediate pass used `Geist`
+  + `JetBrains Mono`.
 - **Theme.** Monochrome black and white, `#0a0a0a` on `#fafafa`, with depth from
   surface steps and hairline greys only — **no hue anywhere**. One knob sets the
   scale — `html { font-size: … }`, stepped `110%` / `130%` / `140%` / `160%` on
@@ -93,14 +96,386 @@
 - **Project entries are not links.** Each project exposes more than one action
   (live demo + source), so entries render as text with individual links rather
   than as a single clickable element.
+- **Project cards carry an optional preview.** DevLens uses the supplied
+  landing-page mockup in `Assets/Projects/devlens.webp`; Lost & Found has no
+  screenshot yet, so its card reserves the same `16/9` block empty. Both cards
+  then start their text at the same line.
 - **Lost & Found link.** The project has no verified repository or demo, so it
   renders a note rather than a placeholder link (per `AGENT.md` §7).
-- **Deployment.** `next.config.ts` keeps the default build. `/`, `/work`, and
-  `/gear` are prerendered and deploy as static output; `POST /api/contact` deploys
-  beside them as a Function and needs the `SMTP_*` variables set in Vercel's
-  environment (§7). No separately managed backend service is involved.
+- **Deployment.** `next.config.ts` keeps the default build. `/`, `/builds`,
+  `/reads`, `/watches`, and `/gear` are prerendered and deploy as static output;
+  `POST /api/contact` deploys beside them as a Function and needs the `SMTP_*`
+  variables set in Vercel's environment (§7). No separately managed backend
+  service is involved.
 
 ## 5. Completed Work
+
+### DONE — 2026-10-20 — Profile photo, watch list, filters, theme click
+
+- **Request:** use `Downloads/dibyanshu.png` as the profile image, renamed to
+  `Assets/profile.png`; add Tenet, KGF: Chapter 1 and 2, Salaar, Marco, Coherence,
+  Predestination, The Hangover 1–3, Shutter Island, and Maharaja to `/watches`;
+  clean up comments and verify every screen.
+- **Profile.** Copied the supplied 1254×1254 PNG to `Assets/profile.png`, pressed
+  to 600×600 (403 KB), and imported it in `Avatar`. The GitHub `/<user>.png`
+  request and its `githubUser` import are gone; the avatar is now served from this
+  origin with its `width` / `height` baked into the build. The plate fallback and
+  the `avatar-photo` develop-in transition are unchanged.
+- **Films.** Added the 12 titles after Thudarum, in the order given, with their
+  posters in `Assets/Posters/` (TMDB `w500`, re-encoded to WebP quality 90):
+  Tenet (2020), KGF: Chapter 1 (2018), KGF: Chapter 2 (2022), Salaar (2023),
+  Marco (2024), Coherence (2013), Predestination (2014), The Hangover (2009),
+  The Hangover Part II (2011), The Hangover Part III (2013), Shutter Island
+  (2010), and Maharaja (2024). The films group is now 19 titles; series remains 4.
+- **Filter and grid.** Added the `all/movies/series` filter as three text buttons
+  on one line, separated by slashes with no spaces. The active label uses
+  `text-terminal` (white by default, black in the white theme) and the others use
+  `text-muted-foreground`. All three views render the same single `2/3` grid:
+  `all` combines the 19 films and 4 series with no group headings, while `movies`
+  and `series` narrow it. The filter is the only client component on the page.
+  The labels carry invisible `py-3.5 -my-3.5` padding, measuring 70.4px tall
+  at the desktop scale and 47.6px on a 320px phone.
+- **Entrance.** The heading arrives at `0`, the filter at `80ms`, and the covers
+  from `150ms` in `70ms` steps. Switching filters remounts the grid under a
+  `key`, so each selection enters serially from the first cover.
+- **Clean-up and verification.** The supplied `click.mp3` was played on the
+  theme switch, then removed on request; no sound remains. `src/` contains no
+  comments or TODO/FIXME markers; the replaced `.badge` rule and the remote
+  avatar dependency are gone. `lint`, `tsc --noEmit`, and `build` pass; all five
+  routes return 200; checked at 1280px, 390px, and 320px with no broken images
+  or horizontal overflow.
+
+### DONE — 2026-10-20 — Watch covers; two-up project cards with icon stacks
+
+- **Request:** give `/watches` covers like `/reads`; put `~ whoami` in the hero;
+  give the project cards the DevLens image (the supplied mockup in `Downloads`)
+  while Lost & Found waits for one; use the home page's icon tiles for project
+  stacks; and put the two projects on one row instead of letting one fill the
+  page.
+- **Watch grid.** `/watches` now has a `2/3` cover grid per group, matching the
+  reads shelf: two columns on phones, three from `md`, `gap-x-5 gap-y-9`, an
+  imported poster in each plate, the title in `normal-case`, and the year under
+  it. Hover brightens the border only. The first 11 titles — seven films and four
+  series — kept their order. Years are the public release years or run ranges
+  (`2017–2020`, `2022–`), not invented watch dates.
+- **Posters.** Pulled once from TMDB's image CDN at `w500`, re-encoded to WebP
+  quality 90 in `Assets/Posters/`, and imported through `src/lib/watches.ts`.
+  Nothing is hotlinked. The source images are 500×750 except Dark at 500×741;
+  the uniform `2/3` plate crops that 9px margin. The cover grid itself stays a
+  server component; the later filter is the only client piece.
+- **Hero prompt.** The eyebrow is now `~ whoami`, with a real space after the
+  accent tilde.
+- **Project preview.** The supplied DevLens landing-page mockup was converted to
+  WebP and imported from `Assets/Projects/devlens.webp`. It sits at the top of
+  the card at `16/9` with `object-cover`, separated by a hairline. Lost & Found
+  reserves the same empty `16/9` block, so both cards start their content on the
+  same line and neither shows a placeholder image or pending-preview copy.
+- **Project grid.** `/builds` changed from one card per row to `grid-cols-1` on
+  phones and `md:grid-cols-2`, keeping the two projects on one row from 768px up.
+  At the desktop scale each card measures 383.9px wide; they stretch to the
+  taller card's height.
+- **Top gap.** Halved the shell's top padding from `pt-16` to `pt-8` on every
+  page, so the first element sits 51.2px below the 100.2px top bar at the desktop
+  scale (35.2px below the 89.9px two-line phone bar) rather than 102.4px.
+- **Stack icons.** Project cards use `TechIcons` at the same `1.875rem` tile size,
+  border, hover, and `title` / `sr-only` naming as the home skill rows. The text
+  `.badge` chips and their CSS were deleted. Icon mappings were added for
+  JavaScript, the two GitHub API entries, Groq/Gemini, Multer, and Nodemailer;
+  React/Node/Express/MongoDB reuse the existing glyphs.
+- **Verification:** `lint` and `tsc --noEmit` pass; `npm run build` passes and all
+  five routes return 200. Checked at 1280px and 320px in a headless browser:
+  two 383.9px project columns at 1280, one 264px card at 320; watch posters
+  243.1×364.7px at 1280 and 121×181.5px at 320; no horizontal overflow and no
+  failed images.
+
+### DONE — 2026-10-20 — Book grid becomes a uniform 3-up
+
+- **Request:** a three-by-three grid with proper spacing.
+- **Grid.** The flex shelf is gone. `/reads` is now `grid-cols-2` on phones and
+  `grid-cols-3` from `md` with the existing `gap-x-5 gap-y-9`, so three boxes sit
+  on one row and the columns line up.
+- **Uniform plate.** Every jacket sits in the same `2/3` plate and fills it with
+  `object-cover`. The boxes are one size, the rows are even, and there are no
+  letterbox bands; the crop only trims jacket margins (the source ratios run
+  0.66–0.82), leaving the titles and art whole.
+- The two-book remainder starts at the left edge of the grid, ready for a sixth
+  book.
+
+### DONE — 2026-10-20 — Book rows distribute; three-up with a real gap
+
+- **Request:** three books in a row with a proper gap.
+- **Distribution.** The shelf now uses `justify-evenly`, so a full row of three
+  shares the column width instead of hugging the left edge and leaving one large
+  hole at the right; the two-book remainder centres under it. Widths still come
+  from each jacket's ratio, so the covers stay unletterboxed and uncropped.
+- **Fit at 320.** The plate height is `9rem` below `md` and `10rem` from `md`.
+  At 320 the 9rem plates let two covers sit side by side again (the 10rem plates
+  had dropped that width to one cover per row).
+
+### DONE — 2026-10-20 — Covers take their own ratio; smaller shelf
+
+- **Request:** the book cover did not fit its box properly, and the boxes should
+  be smaller.
+- **Fit.** The fixed `7/10` plate is gone. The grid became a wrapping flex shelf
+  of `10rem`-tall plates. Each plate's width is `10rem × width/height` from the
+  imported jacket, so the image fills it edge to edge — no letterbox bands
+  around the taller Cat Who Taught Zen jacket, and no cropping (the jackets
+  range from 0.66 to 0.82 width/height).
+- **Size.** At the desktop scale a plate is 256px tall and 169–210px wide, down
+  from 243 × 347. The plates share a height, so titles line up across a row even
+  though the widths differ; the 10rem height scales with the page's rem ladder.
+
+### DONE — 2026-10-20 — Empty avatar plate; theme glyph on the nav's line
+
+- **Request:** nothing should show in the avatar while the photo loads (the `d`
+  was visible), and the theme icon should sit on the same line as the nav text.
+- **Avatar.** Removed the `d` span. The plate is now the faint grid alone while
+  the photo loads, and it stays that way if the photo never arrives. The Iosevka
+  subset, the `localFont` import, and the `.wordmark` rule were deleted with it;
+  JetBrains Mono is the only font the site loads. The favicon keeps its `d` as a
+  static PNG.
+- **Theme glyph.** The button rests at `opacity: 1` instead of `.tech-icon`'s
+  `0.85`, so the sun/moon sits in exactly the nav text's muted tone rather than
+  reading a step dimmer; its flex centring already puts it on the text's line
+  (measured within a pixel).
+- **Hover.** Re-checked: skill tiles, social icons, and the toggle go to pure
+  white on dark and pure black on light; nav and text links use the same token.
+
+### DONE — 2026-10-20 — Avatar drops just under the eyebrow
+
+- **Request:** move the photo a bit below its new starting point while keeping
+  the social row level with the tech stack, and keep hover at pure white on dark
+  and pure black on light.
+- **Avatar.** The plate now carries `md:mt-3` instead of sitting flush with the
+  `~whoami` line: its top edge is a small step under the eyebrow. The social row
+  still uses `mt-auto` and the stack row `md:mt-auto`, so the two rows keep the
+  same bottom edge.
+- **Hover.** Re-verified with the browser's computed styles: dark rest
+  `#a3a3a3` → hover `#ffffff`; light rest `#525252` → hover `#000000`, for skill
+  tiles, social icons, and the theme toggle. Nav and text links use the same
+  `terminal` token, so they invert the same way.
+
+### DONE — 2026-10-20 — Avatar joins the eyebrow; `~whoami` loses its gap
+
+- **Request:** move the photo up so it starts level with the `~whoami` line, and
+  close the space in that line.
+- **Avatar.** The `md:mt-8` wrapper around the plate is gone. At `md` and up its
+  top edge now starts at the grid's top, parallel with the eyebrow, instead of
+  dropping to the name.
+- **Prompt.** The space inside the prompt span was removed, so the label renders
+  `~whoami`; assistive tech still hears only `whoami` because the `~` stays
+  `aria-hidden`.
+
+### DONE — 2026-10-20 — Hover inversion fixed; hero rows share a foot
+
+- **Request:** "in white theme make it black on hover and in black theme make it
+  white on hover"; and the GitHub row must line up with the stack row on larger
+  screens.
+- **Hover.** `.tech-icon:hover` and `.icon-link:hover .tech-icon` moved out of
+  `@layer components`. Tailwind's `utilities` layer loads after `components`, so
+  `text-muted-foreground` was winning and the tiles only changed opacity. The
+  glyph and border now go to `terminal` — black in the light theme, white in the
+  dark one. The short-lived grey hover fill was removed; hovers stay colour-only.
+- **Alignment.** The hero's tech row now takes `md:mt-auto`; both it and the
+  social row sit at the foot of their columns, so they share a bottom edge
+  regardless of which column is taller (verified at 768, 900, 960, 1024, 1280,
+  and 1440).
+
+### DONE — 2026-10-20 — Nav-first bar, theme switcher, role line removed
+
+- **Request:** remove `dibyanshu` from the left of the bar, move the nav to the
+  left, put a borderless theme switcher on the right; then remove the role line from the
+  hero ("both ... student and aspiring data scientist").
+- **Bar.** `Wordmark` and the `animateWordmark` prop are gone; the nav now sits at
+  the left edge and the toggle at the right. With the handle out, the four labels
+  plus the toggle fit one line at 320px, so the old 320px wrap is gone.
+  `.wordmark` stays for the avatar's `d` and the favicon.
+- **Theme.** `@theme inline` became `@theme` so utilities reference `--color-*`
+  instead of inlined hexes. `[data-theme="light"]` overrides the full palette,
+  including the contribution levels; `ThemeToggle` flips the attribute, writes
+  `theme` to `localStorage`, and updates `theme-color`. An inline script in the
+  root layout applies a stored `light` before paint; first visits stay dark.
+- **Hero.** The `student and aspiring data scientist` line is gone and
+  `site.role` was deleted, leaving `~ whoami` → name → intro → tech icons.
+- Verified in the browser at 1280 in both themes and at 320/390 for the bar.
+
+### DONE — 2026-10-20 — Tech and social rows become icon tiles
+
+- **Request:** "instead of using plain text for the names of techs right like
+  reactjs can u replace those with actual icons"; then "similar for github
+  linkedin and for resume just a document type logo", then "add x" and move the
+  social row below the profile picture, parallel to the tech stack.
+- **Glyphs.** `src/components/glyph.tsx` holds 24×24 filled paths — React,
+  Node.js, Express.js, MongoDB, C++, Git, Linux, Python, TypeScript, Next.js,
+  Docker, GitHub, LinkedIn, X, plus generic database, sparkles, layers, grid, and
+  document marks. `tech-icons.tsx` maps each label to one; `social-links.tsx`
+  uses the same tiles for GitHub, LinkedIn, X, and resume.
+- **Names survive.** Every tile carries `title` and an `sr-only` / `aria-label`
+  name, so removing the chips did not remove the labels. `cpp` became `C++` in
+  `site.ts`, and the working-with row now shows the real name in a tooltip.
+- **Sizing.** `1.875rem` tiles with a `1px currentColor` border and a `1rem`
+  glyph, `gap-1`, `0.85` opacity; hover brightens to terminal. Social anchors wrap
+  the tile in `p-2 -m-2`, keeping a 50.6px touch target at the phone scale.
+- **Placement.** The social row moved from the right column to the foot of the
+  avatar column; at `md` and up the grid stretches that column so the icons sit
+  level with the tech row, and the plate carries `mt-8` so its top joins the name.
+  X is `site.links.x` (`https://x.com/DibyanshuMoura`).
+- **Width.** The plate is `8.625rem` square at every width — the combined width of
+  four `1.875rem` tiles and three `0.375rem` gaps — so the photo and the social row
+  share one edge on phones as well as desktop. At that size GitHub's 460px source
+  covers a 2× display without softening.
+- **Projects keep text tags.** The stack badges on `/builds` are a technical spec
+  list (APIs, services, libraries), not a skill row; icons there would obscure
+  names like GitHub REST API or Groq LLM.
+
+### DONE — 2026-10-20 — Column narrowed to `35rem`; builds and shelf reflow
+
+- Container `max-w-4xl` → `max-w-[35rem]` (896px at the desktop scale, 794px of
+  content); the hero moved onto `Container` so its gutters match.
+- `/builds` runs one column at every width — a second column would leave each
+  summary narrower than the phone layout. `/reads` runs three columns from `md`
+  instead of four at `lg`.
+
+### DONE — 2026-10-20 — Serial rise on entry
+
+- `fade-in` replaced by `rise` (`450ms`, `0.75rem` travel, fill both); blocks
+  stagger from `activity.log` on `/` (delays `0/90/180/270ms`, hero static),
+  heading and cards on `/builds`, heading and covers on `/reads`, and
+  heading/setup/carousel/groups on `/gear`. `prefers-reduced-motion` zeroes both
+  duration and delay.
+
+### DONE — 2026-10-20 — Nav and routes: `~/`, `/builds`, `why-me.md`
+
+- `work` → `builds` (route, label, title `Builds — dibyanshu`); nav labels are
+  `~/`, `builds`, `reads`, `gear`, with `aria-label="home"` on `~/`; the why
+  panel's command is `$ cat why-me.md`.
+- The ASCII portrait experiment was dropped before it reached the codebase; its
+  previews lived only in `/tmp`. Nothing to remove from the repo.
+
+### DONE — 2026-10-20 — `/work` compacted: no previews, no `all`
+
+- **Request:** the work section "looks a bit unpolished as compared to others"; a
+  first pass at full-width entries drew "no too big like minimal but aesthetic".
+- **Preview bands removed.** The DevLens capture is a 1890×455 crop of the dashboard
+  header — at card width it was a 137px strip with unreadable text — and Lost &
+  Found has no screenshot, so its `h-28` "preview pending" plate left half a row
+  empty. Both cards are text-only now, which gives the pair equal weight and lets
+  the grid close up under the heading. `project.image`, the placeholder branch in
+  `ProjectCard`, and the image import in `src/lib/projects.ts` are gone; the
+  screenshot file stays in `Assets/Screenshots/`, now unused.
+- **Sized down.** The first pass stacked full-width entries with the screenshot as
+  a 1180px banner, which read as too big for two projects. The page is back to two
+  cards from `lg` up (`mt-8`, `gap-4` under the heading), `p-5`, a `text-base`
+  name, and no index numbers — the earlier footprint, minus the empty plate. Below
+  `lg` each card takes the full column, so seven stack tags do not stack one per
+  line.
+- **`all` removed.** With two projects the rule heading labelled nothing and cost a
+  band of space; `RuleHeading` had no other call site, so it was deleted and
+  `section-heading.tsx` exports `SectionHeading` alone.
+- **Summaries get casing.** Both summaries carry `.prose`, so `GitHub`, `Commit`,
+  `LLM`, and `Gemini AI` read as written — the site rule that sentences render in
+  their own case. Taglines, tags, and markers stay lowercase chrome.
+- **Checked in a real browser** at 1280px and 390px: two columns collapse to one,
+  each card closes with its footer inside the panel, and no empty plate remains.
+  Lint, `tsc`, and `build` pass.
+
+### DONE — 2026-10-20 — `README.md` stays deleted; docs stop pointing at it
+
+- **Request:** "no README" — the portfolio's `README.md`, deleted in the owner's
+  own commit `1fe47d5`, is not coming back.
+- `DESIGN.md` §7 (contact form) no longer sends the mail setup to "`README.md`"; it
+  points at `.env.example` for the variable names and `PROGRESS.md` §7 for the
+  setup. The project-card and work-page sentences now say the *project's own*
+  `readme.md`, so the repositories' readmes and this site's docs cannot be
+  confused.
+- No file was restored. Only prose changed.
+
+### DONE — 2026-10-20 — No intro paragraphs on `/work`, `/reads`, or `/gear`
+
+- **Request:** remove the lead paragraph under `$ cat reads.md` ("Books I have
+  read…"), `$ cat work.md` ("Everything I have built…"), and `$ cat gear.yml`
+  ("The machine and the tools…").
+- Each page now opens on its first real block: the project grid on `/work` (under
+  an `all` rule heading until later the same day), the shelf on `/reads`, `## setup`
+  on `/gear`, all `mt-10` below the shell heading. The `mt-6` prose paragraph and
+  its `max-w-2xl` cap are gone from all three.
+- **Docs:** `DESIGN.md` §7 no longer lists the page intros under `.prose` or the
+  measure cap; the reads section opens without one.
+
+### DONE — 2026-10-20 — A `/reads` page and the shelf grid
+
+- **Request:** "add a reads section, left of the gears section", clarified as a
+  `/reads` page whose grid of book covers "opens up slightly" on hover.
+- **Placement.** The top bar's `PageKey` and `NAV` gained `reads` between `work` and
+  `gear`, so the row is `home work reads gear`; `/reads` renders `$ cat reads.md`
+  and marks itself `aria-current="page"` like the other routes.
+- **The shelf.** `BookGrid` lays covers out at two columns on phones, three at
+  `sm`, four at `lg`, each a `7/10` plate with the site's `rounded-sm` and hairline
+  border, the jacket held whole inside it by `object-contain`, the title in
+  `normal-case`, and the author in `muted-foreground`. The hover is CSS only:
+  `transform-origin: left center` with `perspective(40rem) rotateY(-12deg)` swings
+  the free edge toward the reader, and the border brightens to `terminal-dim` over
+  the standard `150ms`. Reduced motion removes the transition and leaves the
+  border change.
+- **The books.** Five, in Dibyanshu's own order: The Cat Who Taught Zen (James
+  Norbury), The Subtle Art of Not Giving a F*ck (Mark Manson), The Laws of Human
+  Nature (Robert Greene), Ikigai (Héctor García & Francesc Miralles), and Hands-On
+  Machine Learning with Scikit-Learn, Keras, and TensorFlow (Aurélien Géron).
+  Jackets were pulled once from Open Library's cover service into
+  `Assets/Covers/` and imported as `StaticImageData`, the same pipeline as the
+  screenshots, so nothing hotlinks an image host.
+- **Checked in a real browser** at 1280px and 390px: four columns down to two,
+  every jacket whole. The open-cover transform, forced in a throwaway probe,
+  swings the free edge toward the reader without spilling into the next column;
+  the probe was deleted. Lint, `tsc`, and `build` pass, and all four routes
+  answer 200.
+- **Docs:** `DESIGN.md` §7 gained the reads page and the cover interaction, §9 the
+  route, title, and data source; §2 and §7 here record the route and the bar.
+
+### DONE — 2026-10-20 — The loading plate shows `d`, not `DM`
+
+- **Request:** "insted of showing dm before loading show d" — the mark under the
+  photo, seen while the image loads and permanently if it never arrives, is now a
+  single lowercase `d`.
+- **The same mark as the tab.** It is set at `text-5xl` in the wordmark's own face
+  (Iosevka Nerd Font Bold, via `.wordmark`) to match `src/app/icon.png`, a white
+  lowercase `d` on the background colour, instead of the `DM` initials. The plate
+  itself is untouched: same `bg-card`, grid, border, and size.
+- **Verified at rest and before load.** A capture taken before hydration shows the
+  `d` plate where `DM` used to be, and the settled page still shows the photo over
+  it once the image arrives.
+- **Docs:** `DESIGN.md` §7 now records the placeholder and the favicon paragraph no
+  longer describes the plate as a `DM` monogram.
+
+### DONE — 2026-10-20 — The avatar photo develops in when it loads
+
+- **Request:** "add someanimation to the image when loading".
+- **What it does.** The hero photo is held over the monogram plate at `opacity: 0`,
+  `blur(0.5rem)`, `scale(1.06)` and settles to rest in `300ms` on the site's
+  `--ease-out` once the image has loaded. The duration is the hero's existing
+  `fade-in` duration, so the plate, the copy, and the photo read as one entrance
+  rather than three separate ones.
+- **Keyed to the load, not a clock.** `Avatar` is a client component now: it sets
+  `data-ready` from the image's `load` event, and from an effect when the browser
+  reports `complete` at hydration. That second path matters — GitHub's avatar
+  carries `max-age=300`, so on a warm cache the photo is often already decoded
+  before React runs; without it the animation would never fire, or the photo would
+  sit invisible.
+- **No dead end.** The hidden state is CSS from the first paint, so there is no
+  flash of a sharp photo snapping back into a blur. With JavaScript off, an inline
+  `<noscript>` rule shows the photo at rest; if the image fails, the monogram plate
+  remains — the same fallback the plate was built for. The global
+  `prefers-reduced-motion` rule collapses the transition, leaving the photo in
+  place.
+- **Verified in a real browser.** A probe page read the computed transition back:
+  at `0ms` `ready=false opacity=0 filter=blur(11.2px)`; at `300ms` `ready=true
+  opacity=0.97 filter=blur(0.3px)`; at `602ms` `opacity=1 filter=none`. A
+  six-second override of the same transition captured the interpolation itself —
+  opacity `0.06 → 0.72`, blur `10.6px → 3.1px` — with the plate's mark visible
+  through the half-arrived photo, which is the intended "developing" look. The full
+  home page was then captured after hydration and the photo sits sharp and unsealed.
+- **Docs:** `DESIGN.md` §6 gained the motion and §7 the load mechanics; `README.md`'s
+  tree line says the photo is developed in.
 
 ### DONE — 2026-10-19 — `.env` as the single env file, and Git initialized
 
@@ -1733,8 +2108,6 @@
 
 - **Lost & Found is confirmed unhosted** with no dedicated repository. Nothing to
   link; it renders a note. Revisit only if a repository is published.
-- **No screenshot for Lost & Found**, so its card keeps the "preview pending"
-  plate. DevLens has one (`Assets/Screenshots/devlens-dashboard.webp`).
 - **The DevLens card shows a curated subset of the stack.** `PROFILE.md` §4 also
   lists HTML, CSS, and Express.js; the card omits them deliberately — markup is not
   a headline tag, and Express.js is never named in the project's own README.
@@ -1754,10 +2127,12 @@
   dropped except the year's second label, which would otherwise collide. Anything
   past that (a scrollable strip, fewer weeks, taller-than-wide cells) is a different
   trade, not a bigger version of this one; see `DESIGN.md` §7.
-- **The top bar is three items wide and fits a 320px viewport.** Measured: one line
-  (62.58px of header) at 320px and 390px, wrapping only at 300px (91.62px). A
-  hover-capable window and a phone read the same bar, so there is no narrow-width
-  case that only a mouse sees.
+- **The top bar is nav-first and fits one line at 320px.** The handle was removed
+  on 2026-10-20 and the labels (`~/`, `builds`, `reads`, `gear`) moved to the left;
+  the theme toggle holds the right edge. The bar no longer wraps at 320px now that
+  the wordmark's width is gone (measured 2026-10-20). A hover-capable window and a
+  phone read the same bar, so there is no narrow-width case that only a mouse
+  sees.
 - **Link check, 2026-10-18:** the GitHub profile, both DevLens URLs, the config
   repository, and the reference site all return 200. The LinkedIn URL returns 999 —
   LinkedIn's standard block for automated requests — so it comes from `PROFILE.md`

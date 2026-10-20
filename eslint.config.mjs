@@ -8,8 +8,10 @@ const eslintConfig = defineConfig([
   {
     files: [
       "src/components/avatar.tsx",
+      "src/components/book-grid.tsx",
       "src/components/project-card.tsx",
       "src/components/setup-carousel.tsx",
+      "src/components/watch-grid.tsx",
     ],
     rules: {
       "@next/next/no-img-element": "off",

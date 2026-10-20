@@ -1,7 +1,5 @@
-
 import type { StaticImageData } from "next/image";
-
-import devlensDashboard from "../../Assets/Screenshots/devlens-dashboard.webp";
+import devlensShot from "../../Assets/Projects/devlens.webp";
 
 export type ProjectLink = {
   label: string;
@@ -16,6 +14,7 @@ export type Project = {
   stack: readonly string[];
   links: readonly ProjectLink[];
   image?: StaticImageData;
+  imageAlt?: string;
   pendingNote?: string;
 };
 
@@ -39,7 +38,8 @@ export const projects: readonly Project[] = [
       { label: "Live demo", href: "https://devlensai.vercel.app" },
       { label: "Source", href: "https://github.com/DibyanshuMoura/DevLens" },
     ],
-    image: devlensDashboard,
+    image: devlensShot,
+    imageAlt: "DevLens landing page shown on a laptop",
   },
   {
     slug: "lost-and-found",

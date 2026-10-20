@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
-import localFont from "next/font/local";
 import { BackToTop } from "@/components/back-to-top";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -8,19 +7,6 @@ import "./globals.css";
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-});
-
-const iosevkaNerd = localFont({
-  src: [
-    {
-      path: "./fonts/iosevka-nerd-bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-iosevka-nerd",
-  display: "swap",
-  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -41,9 +27,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${jetbrainsMono.variable} ${iosevkaNerd.variable} h-full`}
+      className={`${jetbrainsMono.variable} h-full`}
     >
       <body id="top" className="flex min-h-full flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{if(localStorage.getItem("theme")==="light"){document.documentElement.dataset.theme="light";var m=document.querySelector(\'meta[name="theme-color"]\');if(m)m.setAttribute("content","#fafafa")}}catch(e){}',
+          }}
+        />
         {children}
         <BackToTop />
       </body>

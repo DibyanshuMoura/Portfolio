@@ -1,10 +1,20 @@
-import { githubUser } from "@/lib/site";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import profilePhoto from "../../Assets/profile.png";
 
 export function Avatar() {
+  const photo = useRef<HTMLImageElement>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!photo.current || photo.current.complete) setReady(true);
+  }, []);
+
   return (
     <div
       aria-hidden
-      className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-sm border border-border bg-card sm:h-32 sm:w-32 md:h-auto md:w-full md:aspect-square"
+      className="relative aspect-square w-[8.625rem] overflow-hidden rounded-sm border border-border bg-card"
     >
       <span
         className="absolute inset-0 opacity-20"
@@ -14,14 +24,19 @@ export function Avatar() {
           backgroundSize: "0.5rem 0.5rem",
         }}
       />
-      <span className="relative text-3xl font-bold tracking-tight text-terminal">
-        DM
-      </span>
       <img
-        src={`https://github.com/${githubUser}.png?size=460`}
+        ref={photo}
+        src={profilePhoto.src}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        width={profilePhoto.width}
+        height={profilePhoto.height}
+        onLoad={() => setReady(true)}
+        data-ready={ready ? "" : undefined}
+        className="avatar-photo absolute inset-0 h-full w-full object-cover"
       />
+      <noscript>
+        <style>{`.avatar-photo{opacity:1;filter:none;transform:none}`}</style>
+      </noscript>
     </div>
   );
 }

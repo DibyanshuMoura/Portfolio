@@ -16,29 +16,36 @@ export default function GearPage() {
     <div className="flex min-h-screen flex-col">
       <TopBar active="gear" />
 
-      <main className="flex-1 pt-16 pb-6">
+      <main className="flex-1 pt-8 pb-6">
         <Container>
-          <SectionHeading file="gear.yml" />
+          <div className="animate-rise">
+            <SectionHeading file="gear.yml" />
+          </div>
 
-          <p className="prose mt-6 max-w-2xl text-[0.8125rem] leading-relaxed text-muted-foreground">
-            The machine and the tools underneath everything else here. Rows link
-            to official sites or the repositories behind them.
-          </p>
-
-          <p className="mt-10 text-sm">
+          <p
+            className="animate-rise mt-10 text-sm"
+            style={{ animationDelay: "80ms" }}
+          >
             <span className="text-terminal-dim" aria-hidden>
               ##{" "}
             </span>
             <span className="text-foreground">setup</span>
           </p>
 
-          <div className="mt-6">
+          <div
+            className="animate-rise mt-6"
+            style={{ animationDelay: "160ms" }}
+          >
             <SetupCarousel shots={setupShots} />
           </div>
 
           <div className="mt-10 flex flex-col gap-10">
-            {gear.map((group) => (
-              <section key={group.title}>
+            {gear.map((group, index) => (
+              <section
+                key={group.title}
+                className="animate-rise"
+                style={{ animationDelay: `${240 + index * 80}ms` }}
+              >
                 <h2 className="label-accent">{group.title}</h2>
 
                 <dl className="mt-4 divide-y divide-border/40">
