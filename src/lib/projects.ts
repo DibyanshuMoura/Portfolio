@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import devlensShot from "../../Assets/Projects/devlens.webp";
+import reclaimShot from "../../Assets/Projects/reclaim.webp";
 
 export type ProjectLink = {
   label: string;
@@ -42,21 +43,23 @@ export const projects: readonly Project[] = [
     imageAlt: "DevLens landing page shown on a laptop",
   },
   {
-    slug: "lost-and-found",
-    name: "Lost & Found Management System",
-    tagline: "AI-assisted item matching",
+    slug: "reclaim",
+    name: "Reclaim",
+    tagline: "get back what's yours — no accounts",
     summary:
-      "Connects people who have lost items with people who have found them. Photos of found items are read with Gemini AI and matched against lost-item records, with emails sent on a match.",
+      "Connects people who lost something with the people who found it — no accounts. The finder uploads one photo, AI extracts what's visible, a weighted engine matches the two reports, and contact details exchange only after both sides confirm.",
     stack: [
-      "MongoDB",
+      "JavaScript",
       "Express.js",
-      "React.js",
       "Node.js",
-      "Multer",
+      "MongoDB",
       "Gemini AI",
-      "Nodemailer",
     ],
-    links: [],
-    pendingNote: "Source repository and live demo not yet published.",
+    links: [
+      { label: "Live demo", href: "https://reclaim-items.vercel.app" },
+      { label: "Source", href: "https://github.com/DibyanshuMoura/Reclaim" },
+    ],
+    image: reclaimShot,
+    imageAlt: "Reclaim landing page",
   },
 ] as const;

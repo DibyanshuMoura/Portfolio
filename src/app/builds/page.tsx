@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
+
 import { ProjectCard } from "@/components/project-card";
 import { SectionHeading } from "@/components/section-heading";
 import { TopBar } from "@/components/top-bar";
@@ -8,7 +9,7 @@ import { projects } from "@/lib/projects";
 export const metadata: Metadata = {
   title: "Builds",
   description:
-    "Builds by Dibyanshu Moura — a GitHub analytics platform and a full-stack lost-and-found system with AI-assisted matching.",
+    "Builds by Dibyanshu Moura — a GitHub analytics platform and an accountless lost-and-found engine where AI reads found-item photos and both sides confirm matches.",
 };
 
 export default function BuildsPage() {

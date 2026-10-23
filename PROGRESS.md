@@ -53,13 +53,13 @@
 - Known analysis areas: Coding activity, repository quality signals, language distribution, and contribution consistency.
 - Technology areas (exactly the list in `PROFILE.md` §4): HTML, CSS, JavaScript, React.js, Node.js, Express.js, MongoDB Atlas, GitHub REST API, GitHub OAuth, and the Groq LLM API. The project card shows a curated subset; see §7.
 
-### Lost & Found Management System
+### Reclaim
 
-- Purpose: Connect people who have lost items with people who have found them.
-- Technology areas: MongoDB, Express.js, React.js, Node.js, Multer, Gemini AI, and Nodemailer.
-- Known workflows: Lost-item reporting, found-item image processing, AI-assisted property extraction, matching, and email notifications.
-- Repository URL: NOT YET PROVIDED OR VERIFIED.
-- Live demo: NOT YET PROVIDED OR VERIFIED.
+- Purpose: An accountless lost-and-found — people who lost something connect with the people who found it.
+- How it runs: The finder uploads one photo, a vision model extracts the visible attributes, a weighted deterministic engine matches the two reports, and contact details exchange only after both sides confirm. Private links use one-time tokens shown exactly once; only their SHA-256 hashes are stored.
+- Technology areas: JavaScript, Express.js, Node.js, MongoDB, Zod, Gemini AI (REST), Playwright for end-to-end tests, and a dependency-free static frontend.
+- Repository URL: https://github.com/DibyanshuMoura/Reclaim (verified live, 200).
+- Live demo: https://reclaim-items.vercel.app (verified live, 200).
 
 ## 4. Implementation Notes
 
@@ -97,11 +97,12 @@
   (live demo + source), so entries render as text with individual links rather
   than as a single clickable element.
 - **Project cards carry an optional preview.** DevLens uses the supplied
-  landing-page mockup in `Assets/Projects/devlens.webp`; Lost & Found has no
-  screenshot yet, so its card reserves the same `16/9` block empty. Both cards
-  then start their text at the same line.
-- **Lost & Found link.** The project has no verified repository or demo, so it
-  renders a note rather than a placeholder link (per `AGENT.md` §7).
+  landing-page mockup in `Assets/Projects/devlens.webp`; Reclaim uses its
+  own screenshot converted to `Assets/Projects/reclaim.webp`. Both cards
+  start their text at the same line.
+- **Reclaim link.** The Vercel demo and the GitHub repository are live and
+  card-linked; `pendingNote` stays out of the entry, and the title-row marker
+  renders `live` like DevLens's.
 - **Deployment.** `next.config.ts` keeps the default build. `/`, `/builds`,
   `/reads`, `/watches`, and `/gear` are prerendered and deploy as static output;
   `POST /api/contact` deploys beside them as a Function and needs the `SMTP_*`
@@ -109,6 +110,113 @@
   service is involved.
 
 ## 5. Completed Work
+
+### DONE — 2026-10-23 — Reclaim replaces Lost & Found in the builds list
+
+- **Request:** swap the Lost & Found Management System entry for Reclaim,
+  with `~/Code/Reclaim/README.md` as the source of truth and the screenshot
+  from `~/Downloads`.
+- **Entry** (`src/lib/projects.ts`): Reclaim — tagline "get back what's
+  yours — no accounts" — summarises the accountless flow: the finder
+  uploads one photo, a vision model extracts what's visible, a weighted
+  engine matches the two reports, and contact details exchange only after
+  both sides confirm. Stack kept to README-stated technology that also has
+  card glyphs (JavaScript, Express.js, Node.js, MongoDB, Gemini AI);
+  React/Multer/Nodemailer dropped with the old entry (plain-HTML frontend,
+  mail library unspecified in the README).
+- **Image.** `~/Downloads/RECLAIM_ Private Lost & Found.png` (1536×1024,
+  1.4MB) converted to `Assets/Projects/reclaim.webp` (50KB, q82) and
+  statically imported like `devlens.webp`; both cards now carry previews.
+- **Links landed same day:** live demo
+  `https://reclaim-items.vercel.app` (the user's message had a one-slash
+  typo, normalised to `https://`) and source
+  `https://github.com/DibyanshuMoura/Reclaim`. Both verified 200; the entry
+  lost its `pendingNote`, and the card marker flips to `live`
+  automatically through the existing links logic.
+- **Copy.** The `/builds` metadata description now describes the
+  accountless engine with AI-read photos and mutual confirmation.
+- **Docs.** §3 project info replaced with a Reclaim subsection; §4 preview
+  and link bullets updated; DESIGN §3 casing examples and §7 card
+  paragraphs rewritten around the two-image reality.
+- **Verified.** `lint`, `tsc --noEmit`, and `npm run build` pass; the served
+  `/builds` page contains Reclaim and no Lost & Found copy.
+- All five routes return 200.
+
+### DONE — 2026-10-23 — Mechanical-keyboard click sound on the theme toggle
+
+- **Request:** "add like a smooth mechanical keyboard click sound on click of
+  the theme switching button." No supplied file exists anywhere (repo,
+  `~/Downloads`, git history were all checked), so the sound was synthesised
+  with ffmpeg: a 160ms pink-noise tick (1.3k–8k band, 3ms smoothed attack,
+  exp decay) over a 168 Hz thock body, peak −6dB / mean −25.9dB, mono
+  44.1kHz MP3 at 2.1KB.
+- **Wiring.** `public/sfx/theme-click.mp3`; `theme-toggle.tsx` keeps one lazy
+  module-level `HTMLAudioElement` (`preload: "auto"`, `volume: 0.5`, created
+  on first play so SSR never touches `Audio`) and `playClick()` runs as the
+  first statement of the toggle handler — sound starts immediately on the
+  user gesture, before `applyTransitionedTheme` spins up the reveal.
+  `play()` rejections (autoplay policies on non-gesture contexts) are
+  swallowed. The recipe's transition code is otherwise untouched.
+- **Refined (same day, three times):** final sound is the one from
+  ashutoshx7.me's own theme switch — the user named it explicitly. Extracted
+  verbatim: that bundle inlines it as a base64
+  `data:audio/mpeg` payload decoded into an `AudioContext`; the MP3 is a
+  684-byte 52ms micro-tick (peak −1.8dB), now served as
+  `public/sfx/theme-click.mp3` and played at `volume: 1` (also bumped from
+  0.5 to mirror the source site). Earlier candidates (Mixkit single-key
+  items, freesound CC0 presses incl. a 245ms spacebar thock) were rejected
+  — too bright/clacky by spectrum. `lint`, `tsc --noEmit`, `npm run build`
+  pass; all five routes 200; serving verified (200, mp3, fresh
+  Last-Modified). User confirmed the toggle now sounds identical to the
+  referenced site.
+- **Verified.** Dev server serves the file (200, audio/mpeg static handler)
+  and the client bundle references it; a browser check with a patched
+  `HTMLMediaElement.prototype.play` counter recorded one play per click on
+  `/sfx/theme-click.mp3` across two clicks, with the theme flipping and the
+  reveal vars (`953px | 1186px`) landing exactly as before.
+- **Responsive check:** the reveal was re-probed headlessly at nine window
+  sizes — 320×568, 375×667, 414×736, 480×720, 768×1024, 1024×768,
+  1280×800, 1920×1080, and 2560×1200 — resizing one live session between
+  checks. At every size the origin landed exactly on the toggle's rect
+  centre, the radius was ceil(farthest-corner) + 2px (571px on the 306×552
+  inner viewport up to 1923px at 2366×1184), the theme flipped both ways,
+  the toggle stayed fully inside the viewport (the wrapped header row keeps
+  it visible on phones), and no horizontal overflow appeared at any size.
+  All nine PASS.
+- `lint`, `tsc --noEmit`, and `npm run build` pass; all five routes return 200.
+
+### DONE — 2026-10-23 — Canonical circular-reveal recipe implemented
+
+- **Request:** implement the supplied self-contained recipe "properly" —
+  CSS keyframes `theme-reveal` driven by `--theme-reveal-x/y/max`, a
+  `document.startViewTransition` guard, origin from the toggle button's own
+  rect centre, farthest-corner radius (ceil + 2px), 380ms
+  `cubic-bezier(0.55, 0.06, 0.35, 0.95)`, the 240ms body colour fade as the
+  no-API fallback, and an instant flip for no-API or reduced-motion.
+- **JS.** `applyTheme(theme)` writes `data-theme`, localStorage, and
+  `theme-color`; `applyTransitionedTheme(theme, origin)` guards with
+  `typeof document.startViewTransition === "function"` plus the reduced-motion
+  matchMedia *before* touching the pseudo-element path (per the recipe's
+  accessibility note), sets the three reveal variables, and starts the
+  transition. The toggle derives `next` from the current `data-theme` and
+  always supplies the button's rect centre as the origin.
+- **CSS.** The old snapshot is anchored with `animation: none` +
+  `mix-blend-mode: normal` on both root snapshots; the new root snapshot plays
+  `theme-reveal` (`clip-path` circle from `0px` at the origin to
+  `var(--theme-reveal-max)`), 380ms with the recipe's curve, `forwards`. The
+  `body` gained the 240ms `background-color / color` transition that the
+  recipe uses as its no-API fallback.
+- **Why the earlier attempts misbehaved.** The persistent dev cache served an
+  intermediate broken `theme-toggle.tsx` (`settleReveal` defined twice) to
+  HMR clients, and one CSS edit never hot-reloaded; both cleared themselves
+  with a `.next`-free restart. The production build never contained either
+  problem.
+- **Verified.** The served CSS carries the recipe rules; the browser computes
+  `background-color, color / 0.24s` on `body`; clicking set
+  `--theme-reveal-x: 953px` / `--theme-reveal-y: 50px` (exact button centre)
+  and `--theme-reveal-max: 1186px` = ceil(hypot) + 2 with the theme, store,
+  and meta flipping inside the transition, both directions.
+- `lint`, `tsc --noEmit`, and `npm run build` pass; all five routes return 200.
 
 ### DONE — 2026-10-20 — Profile photo, watch list, filters, theme click
 
@@ -127,8 +235,8 @@
   Marco (2024), Coherence (2013), Predestination (2014), The Hangover (2009),
   The Hangover Part II (2011), The Hangover Part III (2013), Shutter Island
   (2010), and Maharaja (2024). The films group is now 19 titles; series remains 4.
-- **Filter and grid.** Added the `all/movies/series` filter as three text buttons
-  on one line, separated by slashes with no spaces. The active label uses
+- **Filter and grid.** Added the `all / movies / series` filter as three text
+  buttons on one line, separated by spaced slashes. The active label uses
   `text-terminal` (white by default, black in the white theme) and the others use
   `text-muted-foreground`. All three views render the same single `2/3` grid:
   `all` combines the 19 films and 4 series with no group headings, while `movies`
@@ -138,12 +246,17 @@
 - **Entrance.** The heading arrives at `0`, the filter at `80ms`, and the covers
   from `150ms` in `70ms` steps. Switching filters remounts the grid under a
   `key`, so each selection enters serially from the first cover.
+- **Theme hydration.** The white-theme flash-prevention script mutates
+  `data-theme` on `<html>` before React hydrates, so `<html>` is marked
+  `suppressHydrationWarning` and the script moved into the layout's `<head>`,
+  matching Next's guidance.
 - **Clean-up and verification.** The supplied `click.mp3` was played on the
   theme switch, then removed on request; no sound remains. `src/` contains no
   comments or TODO/FIXME markers; the replaced `.badge` rule and the remote
   avatar dependency are gone. `lint`, `tsc --noEmit`, and `build` pass; all five
   routes return 200; checked at 1280px, 390px, and 320px with no broken images
-  or horizontal overflow.
+  or horizontal overflow. Entrance animations were re-run at 1280, 1440, 1600,
+  1920, and 2560; they either run or settle correctly in each viewport.
 
 ### DONE — 2026-10-20 — Watch covers; two-up project cards with icon stacks
 

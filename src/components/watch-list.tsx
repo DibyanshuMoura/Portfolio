@@ -38,7 +38,7 @@ export function WatchList({
         {FILTERS.map((option, index) => (
           <span key={option.value} className="flex items-center">
             {index > 0 ? (
-              <span aria-hidden className="text-terminal-dim">
+              <span aria-hidden className="text-terminal-dim mx-1.5">
                 /
               </span>
             ) : null}

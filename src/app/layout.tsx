@@ -28,14 +28,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       data-scroll-behavior="smooth"
       className={`${jetbrainsMono.variable} h-full`}
+      suppressHydrationWarning
     >
-      <body id="top" className="flex min-h-full flex-col">
+      <head>
         <script
           dangerouslySetInnerHTML={{
             __html:
               'try{if(localStorage.getItem("theme")==="light"){document.documentElement.dataset.theme="light";var m=document.querySelector(\'meta[name="theme-color"]\');if(m)m.setAttribute("content","#fafafa")}}catch(e){}',
           }}
         />
+      </head>
+      <body id="top" className="flex min-h-full flex-col">
         {children}
         <BackToTop />
       </body>

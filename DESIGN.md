@@ -52,9 +52,11 @@ overrides the same variables: `background #fafafa`, `foreground #0a0a0a`, `card
 `terminal #000000`, `terminal-dim #6b6b6b` (≈5.3:1). The contribution levels
 invert with the rest — `level-0` is the lightest surface in light mode and
 `level-4` the darkest. Dark stays the `:root` default; the toggle writes `light` or
-`dark` to `localStorage`, and an inline script in the root layout applies a stored
-`light` before paint so returning visitors never see a dark flash. A first visit
-is dark — the site's own identity — rather than following `prefers-color-scheme`.
+`dark` to `localStorage`, and an inline script in the layout's `<head>` applies a
+stored `light` before paint so returning visitors never see a dark flash.
+`<html>` carries `suppressHydrationWarning` because that script intentionally
+mutates the server-rendered markup. A first visit is dark — the site's own
+identity — rather than following `prefers-color-scheme`.
 
 **Icons for tools.** The two home skill rows and every project card's stack are
 `.tech-icon` tiles: brand glyphs for `working with`, dimmed glyphs for `currently
@@ -92,7 +94,7 @@ no information.
   that has to match the thing it names — so it carries `normal-case`. That covers
   the heatmap handle (`@DibyanshuMoura`, taken from `site.links.github` so it
   cannot drift from the profile link beside it) and the project card's `<h3>`
-  (`DevLens`, `Lost & Found Management System`). The project *tagline* and the
+  (`DevLens`, `Reclaim`). The project *tagline* and the
   stack's accessible names stay lowercase: those are chrome, and they sit in a
   page built out of chrome. Both opt-outs were added 2026-10-18, after the handle
   rendered as `@dibyanshumoura` and DevLens as `devlens`.
@@ -211,7 +213,36 @@ The right edge holds the **theme toggle**: a borderless `1.875rem` target sharin
 `.tech-icon`'s hover and size but not its `0.85` resting opacity — it sits in the
 same muted tone as the nav text, at full opacity. It shows a sun in the dark theme
 and a moon in the light one. It is the only control in the chrome; clicking it flips `data-theme` on
-`<html>`, stores the choice, and updates the browser's `theme-color`.
+`<html>`, stores the choice, and updates the browser's `theme-color`. The switch is the standard
+**circular reveal** recipe: the theme actually switches *inside* the expanding
+circle — no colour-covering blanket. Every click runs through
+`applyTransitionedTheme`: when the View Transition API exists and motion is
+allowed, it writes `--theme-reveal-x` / `--theme-reveal-y` — the toggle
+button's own rect centre, always, not the pointer position — plus
+`--theme-reveal-max` (the farthest-viewport-corner distance, ceil + 2px) onto
+`<html>`, then calls `document.startViewTransition()` with the token flip as
+its update. CSS neutralises the default cross-fade (`animation: none` and
+`mix-blend-mode: normal` on both root snapshots) and plays `theme-reveal` on
+the new snapshot — `clip-path: circle(0px → var(--theme-reveal-max) at
+var(--theme-reveal-x) var(--theme-reveal-y))` over 380ms
+`cubic-bezier(0.55, 0.06, 0.35, 0.95)` — so the re-themed page iris-wipes open
+from the toggle. The variables persist between switches and are overwritten on
+each click. Without the API, or under `prefers-reduced-motion`, the flip is
+instant; the `body` still carries a `background-color / color` transition at
+240ms ease so no-API flips settle visually (the global reduced-motion rule
+collapses that duration for users who ask for less motion). In the instant
+path the two stacked icons run their spin-and-fade swap (`opacity` +
+`transform` — the leaving icon spins out past 90° and shrinks to `0.4`, the
+entering one spins in the other way); inside a view transition the icon change
+is part of the snapshot the circle reveals. Clicks also play a short,
+smooth mechanical-keyboard click sound — `public/sfx/theme-click.mp3`, the
+same 52ms micro-tick MP3 the ashutoshx7.me theme toggle plays (extracted
+verbatim from that bundle, 684 bytes, played at full volume to match) —
+started straight
+from the click handler via a shared lazy `Audio` element at half volume; the
+sound plays before the reveal begins, autoplay-policy rejections are
+swallowed, and dropping any file over `public/sfx/theme-click.mp3` is enough
+to swap it.
 
 ### Favicon
 
@@ -244,9 +275,9 @@ links. Right: `~ whoami` label, name, intro, and tech icons. (A
 
 **The avatar is a local profile picture, with the plate as its fallback.** Until
 2026-10-18 it was only the plate: a `bg-card` square with a faint grid and a `DM`
-monogram, standing in for a photo. The photo now sits on top of that plate, which
-stays underneath so a slow or failed load degrades to the empty grid instead of a
-broken image. The plate shows no glyph: the lowercase `d` that briefly stood there
+monogram, standing in for a photo. The photo now sits on top of that plate,
+which stays underneath so a slow or failed load degrades to the empty grid instead
+of a broken image. The plate shows no glyph: the lowercase `d` that briefly stood there
 on 2026-10-20 was removed the same day on request, so the loading state is just
 the grid. The picture is `Assets/profile.png`, imported and served from this origin;
 it replaced GitHub's `/<user>.png` endpoint on 2026-10-20 so the site no longer
@@ -331,14 +362,15 @@ that form's `to:` row (§7).
 `border-terminal-dim/40`, `overflow-hidden`, and a `p-5` content column with
 `gap-3`:
 
-- **Preview when there is one.** DevLens carries the supplied landing-page mockup
-  (`Assets/Projects/devlens.webp`) at the top of the card, `16/9` and
-  `object-cover`, separated from the content by a hairline. Lost & Found has no
-  verified screenshot, so it reserves the same `16/9` block as an empty
-  `bg-card` panel; both cards start their text on the same line, with no broken
-  image and no "pending" copy. The old 1890×455 dashboard-header strip was removed
-  on 2026-10-20 because its text was unreadable at card width; this wider landing
-  shot is the project's own image and reads at the 2-up size.
+- **Preview when there is one.** Both cards carry one now. DevLens keeps the
+  supplied landing-page mockup (`Assets/Projects/devlens.webp`); Reclaim
+  carries its own screenshot — the `~/Downloads` PNG (1536×1024) converted to
+  `Assets/Projects/reclaim.webp` (50KB) — at the top of the card, `16/9` and
+  `object-cover`, separated from the content by a hairline, so both cards
+  start their text on the same line with no broken image and no "pending"
+  copy. The old empty panel reserved for a future shot is gone; the old
+  1890×455 dashboard-header strip was removed on 2026-10-20 because its text
+  was unreadable at card width.
 - **The stack uses the home page's icon tiles.** `TechIcons` renders
   `project.stack` at the same `1.875rem` size, border, glyph, and hover as the
   skill rows, so a tool looks the same everywhere on the site. It replaced the
@@ -346,7 +378,7 @@ that form's `to:` row (§7).
   `title` and `sr-only`; icons exist for JavaScript, React, Node, Express, MongoDB,
   the GitHub API/OAuth, the LLM/AI tools, Multer, and Nodemailer.
 - **The name is a name.** The `<h3>` carries `normal-case`, so the card reads
-  `DevLens` and `Lost & Found Management System` the way the projects are written,
+  `DevLens` and `Reclaim` the way the projects are written,
   not `devlens` (§3). Everything under it — tagline, stack labels, the `live` /
   `unhosted` marker — stays lowercase.
 - **Title-row marker — the only difference is the hover.** Both states are plain
@@ -673,12 +705,12 @@ so the page ships its own images.
 ### Watches page (`/watches`)
 
 `$ cat watches.md`, no intro, then one filter row and one `2/3` cover grid. The
-filter is written exactly `all/movies/series`, with no spaces around the slashes
-and no group headings in the list. It is three text buttons separated by
-`terminal-dim` slashes: the active label is `terminal` (white by default, black in
-the white theme) and the others are `muted-foreground`, so the selection inverts
-with the theme. `all` is the initial state and shows movies and series together in
-one grid; `movies` and `series` narrow that same grid.
+filter reads `all / movies / series` (no slashes without spaces) and has no group
+headings in the list. It is three text buttons separated by spaced `terminal-dim`
+slashes: the active label is `terminal` (white by default, black in the white
+theme) and the others are `muted-foreground`, so the selection inverts with the
+theme. `all` is the initial state and shows movies and series together in one
+grid; `movies` and `series` narrow that same grid.
 
 The grid matches `/reads`: `grid-cols-2` on phones and `3` from `md`,
 `gap-x-5 gap-y-9`, with the title in `normal-case` over the year in
