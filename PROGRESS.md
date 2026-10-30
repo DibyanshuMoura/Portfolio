@@ -21,25 +21,29 @@
   through the form and read back out of the mailbox)
 - Framework: Next.js 16.4.2 (App Router), React 19.3.0, TypeScript 5
 - Styling: Tailwind CSS v4, tokens declared in `src/app/globals.css`
-- Backend: one POST route handler, `/api/contact`, which sends the contact form's
-  mail with Nodemailer over SMTP. No database, no auth, no third party. Every page
-  is still statically prerendered; this handler is the only route that runs per
-  request. Sending is verified locally end to end (§5); the deployed site still
-  needs the `SMTP_*` variables (§7).
-- Routes: `/` (hero, activity, skills, why hire me, hire.me), `/builds`,
-  `/reads`, `/watches`, `/gear`, `POST /api/contact`, plus Next's stock
-  `/_not-found`
+- Backend: two route handlers — `POST /api/contact` sends the contact form's
+  mail with Nodemailer over SMTP, and `GET /api/now-playing` backs the home
+  page's listening row from Last.fm (§5, §7). No database, no auth. Every page
+  is still statically prerendered; the contact handler runs per request while
+  the now-playing handler is cached at the data layer (`cacheLife`, 1 m
+  revalidate). Sending is verified locally end to end (§5); the deployed site
+  still needs the `SMTP_*` and `LASTFM_*` variables (§7).
+- Routes: `/` (hero, listening row, activity, why hire me, hire.me),
+  `/builds`, `/reads`, `/watches`, `/gear`, `POST /api/contact`,
+  `GET /api/now-playing`, plus Next's stock `/_not-found`
 - Content sources: `PROFILE.md` (facts) and the `src/lib/*` modules that render it
 - Assets: `Assets/Screenshots/` (WebP), `Assets/Covers/` (JPEG book jackets),
   `Assets/Posters/` (WebP film and series posters), `Assets/Projects/` (WebP
   project previews), `Assets/profile.png` (600×600), all imported by the app;
   `public/resume.pdf`
 - Environment: `.env` (mode 600, git-ignored) holds `SMTP_HOST`, `SMTP_PORT`,
-  `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `MAIL_TO`; `.env.example` documents
-  the same names with the password left blank.
+  `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `MAIL_TO`, plus the Last.fm read-only
+  pair `LASTFM_API_KEY` and `LASTFM_USER`; `.env.example` documents the same
+  names with secrets left blank. The Last.fm shared secret is intentionally not
+  stored — the read endpoints are unsigned.
 - Version control: Git on `main`; local commits `d90e8a5` (theme
   reveal + click sound + Reclaim) and `608ae01` (2026-10-24 resume) are not
-  yet pushed; the project-card one-liner change from 2026-10-30 is the
+  yet pushed; the Last.fm listening widget from 2026-10-30 is the
   current uncommitted work.
 - Build status: PASSING (`npm run build`; `/`, `/builds`, `/reads`, `/watches`,
   `/gear` prerendered as static content)
@@ -114,6 +118,58 @@
   service is involved.
 
 ## 5. Completed Work
+
+### DONE — 2026-10-30 — Last.fm now-playing row; playable; album art; then the play machinery came off
+
+- **Request:** add a currently/last-listening display to the landing page; make
+  it playable there and show the music photo; keep it **not** a section of its
+  own — a bare row above `activity.log`, below the hero. Later the same day the
+  icon-only play button was taken **back off** and the row returned to
+  display-only (art, track, artist — album, `playing`/elapsed-time chrome).
+- **Data.** `src/lib/lastfm.ts` reads `LASTFM_API_KEY` / `LASTFM_USER` from
+  `.env` (`LASTFM_USER=dibyanshumoura`), fetches `user.getrecenttracks` under
+  `"use cache"` with `cacheLife({ stale: 30, revalidate: 60, expire: 900 })`,
+  and takes the album cover from the payload's largest `image` (300×300). The
+  shared secret is intentionally absent — the read endpoints are unsigned;
+  `.env.example` documents the pair and says why.
+- **Route + widget.** `GET /api/now-playing` answers the cached payload with no
+  route-segment config (deprecated under Cache Components; the route inherits
+  the 1 m revalidate). `src/components/now-playing.tsx` renders art + track +
+  `artist — album` with the `playing` / elapsed-time chrome and a pulsing dot
+  while a live scrobble carries the flag. Re-poll every 30 s with
+  `cache: "no-store"`. The play machinery (iTunes `findPreview`, the `preview`
+  field, the `HTMLAudioElement` state, the `play`/`pause` glyph paths) was
+  added and then fully removed — the glyph map is back to its previous set.
+- **Placement.** First child of the landing column: no `Section`, no `$ cat`
+  heading; spacing rides the same `gap-14` flow (§7).
+- **Verified.** `lint` / `tsc --noEmit` / `npm run build` pass (routes list
+  `GET /api/now-playing` static at 1 m/15 m); `/api/now-playing` curl-query hits
+  live with the user's actual scrobbles (Solas → Judas → Bandana within
+  minutes) and serves the artwork; `/` HTML contains the row before
+  `id="activity"` with no `listening` heading and no `audio-ssl.itunes`
+  remnants; placeholder states exercised while the account had zero scrobbles
+  (`nothing scrobbled yet`).
+- **Two cache-components constraints surfaced and were cleaned the Next way.**
+  `Date.now()` inside the prerendered client component is rejected, so the
+  elapsed-time text moved behind a `useSyncExternalStore` hydration flag
+  (prerender shows the stable `on last.fm`; the browser renders the timer),
+  and the home page's top-level `await`s moved into `<Suspense>`-wrapped
+  server components to keep the App Shell instant — both insights gone, build
+  still fully static.
+
+### DONE — 2026-10-30 — Tech icon experiments all reverted; component back to original
+
+- **Request:** "icons like the screenshots" → tried brand-coloured glyphs,
+  then boxless black-and-white marks, then hover-to-white — each accepted,
+  then superseded; the final call was to **revert everything**.
+- **State after reverting.** `src/components/tech-icons.tsx` is back to its
+  pre-day form: `1.875rem` bordered `tech-icon` tiles at `muted-foreground`
+  with `size-4` glyphs, `tone` prop intact (`solid` default; `dim` dormant
+  after the skills section removal — kept because the revert restores the
+  original file). No color map, no `style` prop on `Glyph`, no hover on the
+  tiles.
+- **Verified.** `lint` / `tsc --noEmit` pass; served `/` renders the boxed
+  tiles again (no `size-5` boxless glyphs, no `hover:text-terminal` on tiles).
 
 ### DONE — 2026-10-30 — Code cleanup: dead paths and orphaned keys removed
 
@@ -2356,6 +2412,8 @@
    form can send. The credential is confirmed working locally — a message went
    through the endpoint on 2026-10-19 and was read back out of the mailbox — so
    local sending is verified and deployment is the last step of the feature.
+   The same pass should add `LASTFM_API_KEY` and `LASTFM_USER`, which power the
+   now-playing row; without them it shows `listening is unavailable right now`.
 2. A screenshot for Lost & Found when one exists — drop the file into
    `Assets/Screenshots/`, import it in `src/lib/projects.ts`, and confirm or drop
    the `Express.js` tag while there.

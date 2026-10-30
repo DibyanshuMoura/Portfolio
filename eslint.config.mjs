@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
       "src/components/project-card.tsx",
       "src/components/setup-carousel.tsx",
       "src/components/watch-grid.tsx",
+      "src/components/now-playing.tsx",
     ],
     rules: {
       "@next/next/no-img-element": "off",

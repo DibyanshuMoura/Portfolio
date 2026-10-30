@@ -1,14 +1,17 @@
+import { Suspense } from "react";
 import { AnimatedName } from "@/components/animated-name";
 import { Avatar } from "@/components/avatar";
 import { Contact } from "@/components/contact";
 import { Container } from "@/components/container";
 import { ContributionGraph } from "@/components/contribution-graph";
+import { NowPlaying } from "@/components/now-playing";
 import { SectionHeading } from "@/components/section-heading";
 import { SocialLinks } from "@/components/social-links";
 import { TechIcons } from "@/components/tech-icons";
 import { TopBar } from "@/components/top-bar";
 import { getContributions } from "@/lib/github";
-import { currentlyLearning, site, workingWith } from "@/lib/site";
+import { getLatestScrobble } from "@/lib/lastfm";
+import { site, workingWith } from "@/lib/site";
 
 function Section({
   id,
@@ -33,8 +36,22 @@ function Section({
   );
 }
 
-export default async function Home() {
+async function Listening() {
+  return <NowPlaying initial={await getLatestScrobble()} />;
+}
+
+async function ActivityLog() {
   const contributions = await getContributions();
+  return contributions ? (
+    <ContributionGraph data={contributions} />
+  ) : (
+    <p className="prose text-[0.8125rem] text-muted-foreground">
+      Activity is unavailable right now.
+    </p>
+  );
+}
+
+export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -70,26 +87,14 @@ export default async function Home() {
 
         <Container>
           <div className="flex flex-col gap-14">
-            <Section id="activity" file="activity.log" delay={0}>
-              {contributions ? (
-                <ContributionGraph data={contributions} />
-              ) : (
-                <p className="prose text-[0.8125rem] text-muted-foreground">
-                  Activity is unavailable right now.
-                </p>
-              )}
-            </Section>
+            <Suspense>
+              <Listening />
+            </Suspense>
 
-            <Section id="skills" file="skills.md" delay={90}>
-              <div className="flex flex-col gap-3">
-                <p className="label">working with</p>
-                <TechIcons items={workingWith} />
-              </div>
-
-              <div className="mt-2 flex flex-col gap-3">
-                <p className="label">currently learning</p>
-                <TechIcons items={currentlyLearning} tone="dim" />
-              </div>
+            <Section id="activity" file="activity.log" delay={90}>
+              <Suspense>
+                <ActivityLog />
+              </Suspense>
             </Section>
 
             <Section id="why" file="why-me.md" delay={180}>

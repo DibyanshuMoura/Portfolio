@@ -15,7 +15,7 @@ export function ProjectCard({
 
   return (
     <article
-      className="panel animate-rise flex flex-col overflow-hidden transition-colors duration-150 hover:border-terminal-dim/40"
+      className="panel animate-rise flex flex-col overflow-hidden"
       style={{ animationDelay: `${(index + 1) * 90}ms` }}
     >
       {project.image ? (

@@ -409,31 +409,39 @@ that form's `to:` row (§7).
   stretch to the taller one, so the pair shares a top and bottom edge even though
   only DevLens has a preview.
 
-### Skills rows (`skills.md`)
+### Tech icon tiles (`TechIcons`)
 
-Two `TechIcons` rows, one per group, in different tones: **`working with`** at
-`muted-foreground`, **`currently learning`** at `terminal-dim`. Each entry is a
-`1.875rem` tile holding a glyph; the name is carried by the element's `title` and
-an `sr-only` span, so hover and assistive tech still read every tile even though
-the chip is gone. The tone is the whole difference — same box, same size, same
-hover — which keeps the claim honest: tools in use and topics in progress are the
-same *kind* of mark, and the dimmer row says the second set is not yet something
-to lean on. The group labels carry the semantics; the tone only sets the
-confidence.
+Each entry is a `1.875rem` bordered tile holding a glyph; the name is carried
+by the element's `title` and an `sr-only` span, so hover and assistive tech
+still read every tile. Glyphs are simple-icons brand marks from
+`src/components/glyph.tsx`; `tech-icons.tsx` maps item labels to them.
 
-The row is icon-first because a stack is recognised by its marks. `React.js`,
-`Node.js`, `Express.js`, `MongoDB`, `C++`, `SQL`, `Git`, and `Linux` use brand or
-database glyphs; the learning row uses the `Python`, `TypeScript`, `Next.js`, and
-`Docker` marks and four generic glyphs for the topics (`sparkles` for AI/ML,
-`layers` for foundations, `grid` for system design, `database` for advanced SQL).
-`src/components/glyph.tsx` holds the paths; `tech-icons.tsx` maps labels to them.
+On 2026-10-30 three looks were tried and **all reverted at the user's
+request** — brand-coloured glyphs mirroring `desktop-launcher.webp`, then a
+boxless black-and-white `size-5` row, then a hover-to-white treatment.
+`tech-icons.tsx` came back byte-for-byte identical to its pre-day state:
+boxed tiles at `muted-foreground` (the unused-elsewhere `tone="dim"` variant
+included). The `tech-icon` class keeps serving the tiles plus the boxed
+controls — social buttons and the theme toggle.
 
-**Currently learning used to be a vertical list** — `border-l border-border/50`
-and a `9px` accent dot per item — until 2026-10-18. It was the only list of that
-kind on the site, its rule was invisible at `border-border/50` on the background,
-its dots were full-white, and eight one-line entries spent ~410px of column height
-and read as unfinished next to the chip row above. Replaced with the second row,
-which is `~90px`.
+### Skills rows (removed 2026-10-30)
+
+### Skills rows (removed 2026-10-30)
+
+`skills.md` was a pair of `TechIcons` rows — **`working with`** at
+`muted-foreground` and **`currently learning`** at `terminal-dim`, each entry a
+`1.875rem` glyph tile with the name in `title` plus an `sr-only` span. It was
+**removed from the landing page on 2026-10-30 on request**, leaving the page as
+hero → now-playing row → `activity.log` → `why-me` → `hire.me`; the hero's own
+`workingWith` tile row stays, so the stack is still named on the landing page
+and again per panel on `/builds`. With the section gone, `TechIcons`' `tone`
+prop lost its last caller and was deleted — the tiles are now uniformly
+`muted-foreground` boxes carrying brand-coloured glyphs (see the Tech icon
+tiles entry above). `src/components/tech-icons.tsx` and
+`src/lib/site.ts`'s `currentlyLearning` remain — the component serves the
+hero row and the project stacks on `/builds`, and `currentlyLearning` is dormant
+until a page asks for it again. (History: the learning list was a vertical
+dot-and-rule list until 2026-10-18, when it became the second tone row.)
 
 ### Contact form (in `hire.me`)
 
@@ -649,8 +657,9 @@ activity.log` already says what the section is, and the two labels stacked.
 ### Removed: `$ cat about.md`
 
 The two-paragraph bio was **removed on request** on 2026-10-19, which leaves the
-landing page's section list as `activity.log` → `skills.md` → `why-me` →
-`hire.me`: the contribution graph now opens the page under the hero. It was the only
+landing page as hero → now-playing row → `activity.log` →
+`why-me` → `hire.me` (after the 2026-10-30 removal of `skills.md`); the now-playing row (§7) opens the page under the hero,
+with the contribution graph right after. It was the only
 rendering of `site.direction`, so that field went with it — the position it
 paraphrased (`PROFILE.md` §2) is unchanged there, and the `why-me` panel below
 still carries the "how I work" prose. Nothing linked to `/#about`, so no anchor was
@@ -665,6 +674,54 @@ on 2026-10-19, and its arc is how the work gets approached → what is brought t
 team → growth and what it contributes. It replaced four paragraphs written for the
 site on 2026-10-18, whose closing beat — the work being judged by whether it helps
 someone — was the only part of that copy the new text does not repeat.
+
+### Now playing row
+
+Added 2026-10-30 under the hero, directly above `activity.log`, and deliberately
+**not a `Section` of its own** — it carries no `$ cat` heading; the bare
+`panel` row is the first child of the landing column (inside the `Section`
+container's `gap-14` flow, so the spacing matches the sections it sits between).
+
+It reads the Last.fm recent-tracks feed and shows, in one row: the album art as
+a 48 px `rounded-sm` image in a hairline border, the track name with the
+`artist — album` line under it, and on the right the chrome — a pulsing dot
+plus `playing` while a live scrobble carries the flag, otherwise the elapsed
+time alone — `8 minutes ago`.
+
+- **Data path.** `src/lib/lastfm.ts` fetches `user.getrecenttracks` with the
+  read-only `LASTFM_API_KEY` / `LASTFM_USER` from env (never bundled to the
+  client), under `"use cache"` with `cacheLife({ stale: 30, revalidate: 60,
+  expire: 900 })`. From the payload it takes the largest `image` size (the
+  300×300 album art) as the row's cover. The server value prerenders into the
+  row so first paint is honest, and `src/components/now-playing.tsx` hydrates
+  and re-polls `GET /api/now-playing` every 30 s with `cache: "no-store"`. The
+  home page awaits it inside a `<Suspense>` boundary so the App Shell stays
+  URL-independent (the partial-prefetching rule), and the elapsed-time text is
+  computed only after hydration via `useSyncExternalStore` — a `Date.now()` read
+  inside the prerendered client component is a cache-components error, so
+  prerender shows the stable `on last.fm` string until the client takes over. On
+  Vercel the route rides the same cache profile (1 m revalidate, 15 m expire) —
+  no route segment config, per the Cache Components migration rules.
+- **Playable, without another key.** The same cached call asks Apple's
+  public iTunes Search API (no key, no account) for the official 30-second clip
+  of the matched song; its `previewUrl` rides along in the scrobble as
+  `preview`, and `src/components/now-playing.tsx` keeps one
+  `HTMLAudioElement` behind a play-key state — every press of the icon button
+  (the glyph square, like the theme toggle) starts the clip from the beginning,
+  a new scrobble discards the audio, and unmount pauses it. When iTunes has no
+  match, the button simply doesn't render. **Removed 2026-10-30 after the
+  cover went in — the row is display-only again**; the field, the helper, the
+  button, and the `play`/`pause` glyphs are all gone.
+- **States.** The row has no hover effect at all — the art and text anchor to
+  the last.fm page; `nothing scrobbled yet` when the account is quiet;
+  `listening is unavailable right now` when unset or the fetch fails. Failures
+  keep the last good render rather than blanking the row.
+- **Case.** The row keeps the body-wide lowercase for chrome, and marks track,
+  artist, and album `normal-case` so proper nouns stay typed as released —
+  same split as project names.
+- **The shared secret is deliberately not stored** — the read endpoints are not
+  signed; only the API key is needed, and it lives in env (`.env` locally,
+  Vercel's project environment in production) so it can rotate without a commit.
 
 ### Builds page (`/builds`)
 
@@ -825,22 +882,25 @@ All five pages are statically prerendered and share the top bar, container, and
 shell-heading vocabulary. One route is not a page: `POST /api/contact`, the contact
 form's mail endpoint (§7), which runs per request as a Vercel Function. It has no
 layout, no navigation, and nothing to render — it takes JSON and answers JSON, and
-any other verb on it is a `405`.
+any other verb on it is a `405`. A second endpoint, `GET /api/now-playing`, backs
+the listening widget (§7): statically cached at the data layer's 1 m revalidate
+rather than run per request.
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Hero, GitHub activity, skills, why hire me, hire me (contact form) |
+| `/` | Hero, now-playing row, GitHub activity, why hire me, hire me (contact form) |
 | `/builds` | Every project, at overview length, with stack and links |
 | `/reads` | The shelf: a 3-up cover grid, each cover opening on hover (`$ cat reads.md`) |
 | `/watches` | The watch log: a `2/3` cover grid with an `all/movies/series` filter (`$ cat watches.md`) |
 | `/gear` | The desktop itself (setup carousel), then hardware, software, and config files (`$ cat gear.yml`) |
 | `POST /api/contact` | Sends the contact form's message with Nodemailer |
+| `GET /api/now-playing` | Latest Last.fm scrobble for the listening row |
 
 The top bar marks the current route with `aria-current="page"` and the accent
 colour — all five routes do, `home` included, so exactly one item is marked
 wherever you are. Navigation uses `next/link`. There is no `about` entry, and since
-2026-10-19 no `about.md` section either — the landing page's first section is
-`activity.log` (§7). The `hire.me` section (the contact form) keeps its `id` and
+2026-10-19 no `about.md` section either — the landing page opens on the
+now-playing row (§7), with `activity.log` directly after. The `hire.me` section (the contact form) keeps its `id` and
 `scroll-mt` for deep links such as `/#hire-me`, though nothing in the bar points at
 it. The back-to-top control is rendered once, by the root layout, so it appears on
 every route — including `/_not-found`, which is otherwise still Next's stock page.
