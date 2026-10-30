@@ -390,12 +390,16 @@ that form's `to:` row (§7).
   somewhere or it does not, and only one of those can be hovered. `live` was a
   bordered `foreground` chip, then a white `.link`, until 2026-10-18; `unhosted`
   was a `terminal-dim` badge until the same day.
-- Tagline, summary, stack icons, and a bottom row of repo links — or the
-  `pendingNote` when no verified links exist. **Overview length, not a case
-  study:** one short summary paragraph (~2 sentences) and a stack, nothing
-  enumerated. The summary carries `.prose`, so `GitHub`, `Commit`, `LLM`, and
-  `Gemini AI` keep their casing; the tagline, stack labels, and marker stay
-  lowercase chrome. A feature-bullet list sat here until 2026-10-18 and made each
+- Tagline, stack icons, and a bottom row of repo links. **Overview length, not a
+  case study:** the tagline is the one description line and a stack, nothing
+  enumerated; the summary body paragraph was removed on 2026-10-30 (it
+  carried `.prose`, so `GitHub`, `Commit`, `LLM`, and `Gemini AI` kept their
+  casing there), and the `pendingNote` fallback went with it the same day —
+  both cards carry verified links, so the note machinery became dead code.
+  The tagline, stack labels, and marker stay lowercase chrome.
+  The bottom row is pinned to the card base with `mt-auto`, so the link rows
+  across the two cards sit parallel no matter how tall the content above runs.
+  A feature-bullet list sat here until 2026-10-18 and made each
   card ~1000px tall. The detail lives in the project's own `readme.md` and
   `PROFILE.md` §4; the card links to `source` and stops there — a separate
   `readme.md` link was added on 2026-10-18 and removed the same day, because
@@ -665,8 +669,9 @@ someone — was the only part of that copy the new text does not repeat.
 ### Builds page (`/builds`)
 
 Same shell heading and nav, then two cards side by side from `md` (one column on
-phones). Each card is an **overview, not a case study**: name, tagline, one short
-summary paragraph, stack icons, and the links. The one-column layout made a single
+phones). Each card is an **overview, not a case study**: name, one tagline line,
+stack icons, and the links (the summary paragraph was dropped on 2026-10-30).
+The one-column layout made a single
 card fill the page; the pair now reads as a set without putting more than two
 projects on a row. It carried a feature-bullet list behind a `showHighlights`
 prop until 2026-10-18 — the cards ran ~1000px each, which read as a wall of text.

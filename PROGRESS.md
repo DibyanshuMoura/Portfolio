@@ -37,10 +37,10 @@
 - Environment: `.env` (mode 600, git-ignored) holds `SMTP_HOST`, `SMTP_PORT`,
   `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `MAIL_TO`; `.env.example` documents
   the same names with the password left blank.
-- Version control: Git on `main`; the theme-reveal/click-sound/Reclaim batch
-  is committed locally as `d90e8a5` (not yet pushed); `public/resume.pdf` was
-  swapped to the 2026-10-24 `dibyanshumoura.pdf` from `~/Downloads`
-  afterwards and remains uncommitted.
+- Version control: Git on `main`; local commits `d90e8a5` (theme
+  reveal + click sound + Reclaim) and `608ae01` (2026-10-24 resume) are not
+  yet pushed; the project-card one-liner change from 2026-10-30 is the
+  current uncommitted work.
 - Build status: PASSING (`npm run build`; `/`, `/builds`, `/reads`, `/watches`,
   `/gear` prerendered as static content)
 - Lint status: PASSING (`npm run lint`, no findings)
@@ -104,7 +104,8 @@
   own screenshot converted to `Assets/Projects/reclaim.webp`. Both cards
   start their text at the same line.
 - **Reclaim link.** The Vercel demo and the GitHub repository are live and
-  card-linked; `pendingNote` stays out of the entry, and the title-row marker
+  card-linked; the `pendingNote` field and render branch were removed on
+  2026-10-30 because both projects carry links, and the title-row marker
   renders `live` like DevLens's.
 - **Deployment.** `next.config.ts` keeps the default build. `/`, `/builds`,
   `/reads`, `/watches`, and `/gear` are prerendered and deploy as static output;
@@ -113,6 +114,54 @@
   service is involved.
 
 ## 5. Completed Work
+
+### DONE — 2026-10-30 — Code cleanup: dead paths and orphaned keys removed
+
+- **Request:** clean all the code — no comments, no extra stuff.
+- **Comments.** Swept `src/**` (ts/tsx/css): no comments anywhere; the only
+  `//` matches are inside `https://` string literals.
+- **`pendingNote` machinery removed.** With both projects carrying verified
+  links, the field, its type declaration, and the render branch were dead —
+  gone from `projects.ts` and `project-card.tsx`; docs updated.
+- **Icon map.** `Multer` was the only key whose name no longer appears in
+  any stack or skill item — removing it (a per-key usage check over all of
+  `src/**` confirmed the rest, e.g. `Gemini AI` and `Nodemailer`, are in
+  active use). Reclaim's mail tile stays, as requested earlier the same day.
+- **Verified.** `lint`, `tsc --noEmit`, `npm run build` pass; served
+  `/builds` unchanged in content — both taglines, links, and icon tiles
+  intact, `/` 200.
+
+### DONE — 2026-10-30 — Card link rows pinned parallel; Nodemailer tile on Reclaim
+
+- **Request:** the source row should sit at a fixed position across all
+  project boxes; add a mail icon for nodemailer in Reclaim's tech stack.
+- **Card** (`project-card.tsx`): the bottom links row gained `mt-auto`, so
+  with the cards being flex columns the `source` / repo links pin to the
+  card base and the two cards' bottom rows align in parallel.
+- **Stack** (`projects.ts`): Reclaim gains `Nodemailer` — the icon map
+  already binds the name to the `mail` glyph, so the tile renders directly;
+  DevLens's row is untouched.
+- **Docs.** DESIGN §7 card anatomy notes the pinned bottom row.
+- **Verified.** `lint`, `tsc --noEmit`, `npm run build` pass; the served
+  `/builds` page carries the `mt-auto` row and six Reclaim icon tiles
+  including the mail one.
+
+### DONE — 2026-10-30 — Project cards drop the body; the tagline is the description
+
+- **Request:** no detail on the project cards beyond the one-liner ("how your
+  GitHub reads to a hiring manager" style); remove the whole body part.
+- **Card** (`project-card.tsx`): the summary `<p>` is gone; the tagline
+  renders as the sole description line, styled with the body copy's look
+  (`.prose`, `0.8125rem`, `muted-foreground`) instead of the tiny dim label.
+- **Data** (`projects.ts`): the `summary` field is removed from the
+  `Project` type and both entries — the full stories live in each project's
+  own README, per the card's link philosophy.
+- **Docs.** DESIGN §7 card anatomy and the `/builds` page paragraph now
+  describe the one-liner reality; PROGRESS §2/§3 untouched (project-info §3
+  keeps the Reclaim details, which is the docs' job).
+- **Verified.** Served `/builds` carries both taglines (0 summary text),
+  icons and links intact; `lint`, `tsc --noEmit`, `npm run build` pass;
+  `/` and `/builds` return 200.
 
 ### DONE — 2026-10-30 — Resume file replaced with the 2026-10-24 version
 

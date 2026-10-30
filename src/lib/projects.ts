@@ -11,12 +11,10 @@ export type Project = {
   slug: string;
   name: string;
   tagline: string;
-  summary: string;
   stack: readonly string[];
   links: readonly ProjectLink[];
   image?: StaticImageData;
   imageAlt?: string;
-  pendingNote?: string;
 };
 
 export const projects: readonly Project[] = [
@@ -24,8 +22,6 @@ export const projects: readonly Project[] = [
     slug: "devlens",
     name: "DevLens",
     tagline: "how your GitHub reads to a hiring manager",
-    summary:
-      "Measures a GitHub profile before writing about it. Commit activity, streaks and repository hygiene are computed in code, then handed to the LLM as verified signals.",
     stack: [
       "JavaScript",
       "React",
@@ -46,14 +42,13 @@ export const projects: readonly Project[] = [
     slug: "reclaim",
     name: "Reclaim",
     tagline: "get back what's yours — no accounts",
-    summary:
-      "Connects people who lost something with the people who found it — no accounts. The finder uploads one photo, AI extracts what's visible, a weighted engine matches the two reports, and contact details exchange only after both sides confirm.",
     stack: [
       "JavaScript",
       "Express.js",
       "Node.js",
       "MongoDB",
       "Gemini AI",
+      "Nodemailer",
     ],
     links: [
       { label: "Live demo", href: "https://reclaim-items.vercel.app" },

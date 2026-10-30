@@ -15,7 +15,6 @@ const ICONS: Record<string, GlyphName> = {
   "GitHub REST API": "github",
   "GitHub OAuth": "github",
   "Groq LLM": "sparkles",
-  Multer: "upload",
   "Gemini AI": "sparkles",
   Nodemailer: "mail",
   "AI/ML integration": "sparkles",

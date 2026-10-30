@@ -54,17 +54,13 @@ export function ProjectCard({
           )}
         </div>
 
-        <p className="text-xs leading-relaxed tracking-widest text-terminal-dim">
-          {project.tagline}
-        </p>
-
         <p className="prose text-[0.8125rem] leading-relaxed text-muted-foreground">
-          {project.summary}
+          {project.tagline}
         </p>
 
         <TechIcons items={project.stack} className="mt-1" />
 
-        <div className="flex flex-wrap items-center gap-4 pt-2 text-xs">
+        <div className="mt-auto flex flex-wrap items-center gap-4 pt-2 text-xs">
           {repoLinks.map((link) => (
             <a
               key={link.href}
@@ -76,11 +72,6 @@ export function ProjectCard({
               {link.label}
             </a>
           ))}
-          {project.links.length === 0 && project.pendingNote ? (
-            <span className="text-[0.6875rem] text-terminal-dim">
-              {project.pendingNote}
-            </span>
-          ) : null}
         </div>
       </div>
     </article>
