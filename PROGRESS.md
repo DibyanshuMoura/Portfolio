@@ -37,7 +37,10 @@
 - Environment: `.env` (mode 600, git-ignored) holds `SMTP_HOST`, `SMTP_PORT`,
   `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, and `MAIL_TO`; `.env.example` documents
   the same names with the password left blank.
-- Version control: Git initialized on `main`; the current work is uncommitted.
+- Version control: Git on `main`; the theme-reveal/click-sound/Reclaim batch
+  is committed locally as `d90e8a5` (not yet pushed); `public/resume.pdf` was
+  swapped to the 2026-10-24 `dibyanshumoura.pdf` from `~/Downloads`
+  afterwards and remains uncommitted.
 - Build status: PASSING (`npm run build`; `/`, `/builds`, `/reads`, `/watches`,
   `/gear` prerendered as static content)
 - Lint status: PASSING (`npm run lint`, no findings)
@@ -110,6 +113,17 @@
   service is involved.
 
 ## 5. Completed Work
+
+### DONE — 2026-10-30 — Resume file replaced with the 2026-10-24 version
+
+- **Request:** update the resume with the new one from `~/Downloads`.
+- The site links `site.resume` → `/resume.pdf` from `public/`, so the swap
+  needs no code change: `~/Downloads/dibyanshumoura.pdf` (92,464 bytes,
+  PDF-1.5, dated 2026-10-24) overwrote `public/resume.pdf` (the previous
+  copy was dated 2026-10-18 at 93,550 bytes). Header bytes verify as a
+  valid PDF; the `resume` row in the social links and every doc mention of
+  the path stay correct as written.
+- Uncommitted — ready to join the next commit and push.
 
 ### DONE — 2026-10-23 — Reclaim replaces Lost & Found in the builds list
 
