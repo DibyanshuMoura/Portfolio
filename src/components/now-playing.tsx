@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { Glyph } from "@/components/glyph";
 import type { NowPlaying, Scrobble } from "@/lib/lastfm";
 
 const subscribe = () => () => {};
@@ -17,16 +18,22 @@ function ago(ms: number) {
 export function NowPlaying({ initial }: { initial: NowPlaying }) {
   const [state, setState] = useState(initial);
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
+  const [failedArt, setFailedArt] = useState<string>("");
+
+  const artwork = state.latest?.artwork ?? "";
+  const artFailed = artwork !== "" && failedArt === artwork;
 
   useEffect(() => {
     let stopped = false;
     const read = async () => {
       try {
-        const response = await fetch("/api/now-playing", { cache: "no-store" });
-        if (response.ok) {
-          const data: NowPlaying = await response.json();
-          if (!stopped) setState(data);
-        }
+        const response = await fetch("/api/now-playing");
+        if (!response.ok) return;
+        const data: NowPlaying = await response.json();
+        if (stopped) return;
+        setState((previous) =>
+          data.latest || !previous.latest ? data : previous,
+        );
       } catch {}
     };
     const poll = setInterval(read, 30_000);
@@ -52,17 +59,28 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
 
   return (
     <div className="panel animate-rise flex items-center gap-4 px-4 py-1.5 sm:px-5 sm:py-2">
-      {latest?.artwork ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="shrink-0">
+      <a href={link} target="_blank" rel="noopener noreferrer" className="shrink-0">
+        {artwork && !artFailed ? (
           <img
-            src={latest.artwork}
+            src={artwork}
             alt=""
             width={48}
             height={48}
-            className="size-12 rounded-sm border border-terminal-dim/20 object-cover"
+            decoding="async"
+            onError={() => setFailedArt(artwork)}
+            className={`size-12 rounded-full border border-terminal-dim/20 bg-terminal-dim/5 object-cover ${
+              latest?.nowPlaying ? "animate-music-spin" : ""
+            }`}
           />
-        </a>
-      ) : null}
+        ) : (
+          <span className="flex size-12 items-center justify-center rounded-full border border-terminal-dim/20 text-terminal-dim/40">
+            <Glyph
+              name="music"
+              className={`size-5 ${latest?.nowPlaying ? "animate-music-spin" : ""}`}
+            />
+          </span>
+        )}
+      </a>
 
       <a
         href={link}

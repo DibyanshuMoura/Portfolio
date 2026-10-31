@@ -23,6 +23,7 @@ const PATHS = {
   upload: "M12 3l5 5h-3v5h-4V8H7l5-5zm-7 14h14v2H5v-2z",
   document:
     "M6 2h7v5h5v15H6V2zM8 11h6v1.5H8zM8 14h6v1.5H8zM8 17h4v1.5H8z",
+  music: "M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z",
 } as const;
 
 export type GlyphName = keyof typeof PATHS;
