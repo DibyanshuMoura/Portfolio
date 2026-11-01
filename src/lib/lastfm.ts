@@ -1,5 +1,3 @@
-import { cacheLife } from "next/cache";
-
 export type Scrobble = {
   track: string;
   artist: string;
@@ -13,6 +11,7 @@ export type Scrobble = {
 export type NowPlaying = {
   user: string;
   latest: Scrobble | null;
+  error?: boolean;
 };
 
 type RecentImage = { "#text"?: string; size?: string };
@@ -27,14 +26,7 @@ type RecentTrack = {
   "@attr"?: { nowplaying?: string };
 };
 
-export function isLastFmConfigured() {
-  return Boolean(process.env.LASTFM_API_KEY && process.env.LASTFM_USER);
-}
-
 export async function getLatestScrobble(): Promise<NowPlaying> {
-  "use cache";
-  cacheLife({ stale: 30, revalidate: 60, expire: 900 });
-
   const key = process.env.LASTFM_API_KEY ?? "";
   const user = process.env.LASTFM_USER ?? "";
   if (!key || !user) return { user: "", latest: null };
@@ -42,7 +34,10 @@ export async function getLatestScrobble(): Promise<NowPlaying> {
   try {
     const response = await fetch(
       `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${encodeURIComponent(user)}&api_key=${encodeURIComponent(key)}&format=json&limit=1`,
+      { cache: "no-store" },
     );
+    if (!response.ok) return { user, latest: null, error: true };
+
     const payload = (await response.json()) as {
       recenttracks?: { track?: RecentTrack[] | RecentTrack };
     };
@@ -70,6 +65,6 @@ export async function getLatestScrobble(): Promise<NowPlaying> {
       },
     };
   } catch {
-    return { user, latest: null };
+    return { user, latest: null, error: true };
   }
 }

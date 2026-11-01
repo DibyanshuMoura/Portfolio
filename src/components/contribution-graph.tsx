@@ -31,8 +31,7 @@ function ruler(months: Month[], start: number, end: number) {
   return labels;
 }
 
-export function ContributionGraph({ data }: { data: Contributions }) {
-  const block = Math.ceil(data.weeks.length / 2);
+export function ContributionGraph({ data }: { data: Contributions }) {  const block = Math.ceil(data.weeks.length / 2);
   const blocks = [data.weeks.slice(0, block), data.weeks.slice(block)];
 
   return (
@@ -101,6 +100,46 @@ export function ContributionGraph({ data }: { data: Contributions }) {
             key={level}
             aria-hidden
             className={`h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] ${bg}`}
+          />
+        ))}
+        <span>more</span>
+      </div>
+    </div>
+  );
+}
+
+export function ContributionGraphSkeleton() {
+  return (
+    <div className="heatmap panel p-6" aria-hidden>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="h-3.5 w-56 animate-pulse rounded-sm bg-terminal-dim/10" />
+        <span className="h-2.5 w-20 animate-pulse rounded-sm bg-terminal-dim/10" />
+      </div>
+
+      <div className="scroll-x mt-4 pb-1">
+        <div className="heatmap-blocks flex w-max items-start gap-x-[var(--heatmap-gap)] gap-y-3">
+          {[0, 1].map((block) => (
+            <div key={block} className="w-max animate-pulse">
+              <div className="mb-1 h-3" />
+              <div className="grid grid-flow-col grid-rows-[repeat(7,var(--heatmap-cell))] gap-[var(--heatmap-gap)]">
+                {Array.from({ length: 27 * 7 }, (_, cell) => (
+                  <span
+                    key={cell}
+                    className="h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] bg-terminal-dim/10"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[0.625rem] text-muted-foreground">
+        <span>less</span>
+        {LEVEL_BG.map((level) => (
+          <span
+            key={level}
+            className="h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] bg-terminal-dim/10"
           />
         ))}
         <span>more</span>

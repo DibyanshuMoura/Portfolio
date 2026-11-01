@@ -3,8 +3,8 @@ import { AnimatedName } from "@/components/animated-name";
 import { Avatar } from "@/components/avatar";
 import { Contact } from "@/components/contact";
 import { Container } from "@/components/container";
-import { ContributionGraph } from "@/components/contribution-graph";
-import { NowPlaying } from "@/components/now-playing";
+import { ContributionGraph, ContributionGraphSkeleton } from "@/components/contribution-graph";
+import { NowPlaying, NowPlayingSkeleton } from "@/components/now-playing";
 import { SectionHeading } from "@/components/section-heading";
 import { SocialLinks } from "@/components/social-links";
 import { TechIcons } from "@/components/tech-icons";
@@ -87,12 +87,12 @@ export default function Home() {
 
         <Container>
           <div className="flex flex-col gap-14">
-            <Suspense>
+            <Suspense fallback={<NowPlayingSkeleton />}>
               <Listening />
             </Suspense>
 
             <Section id="activity" file="activity.log" delay={90}>
-              <Suspense>
+              <Suspense fallback={<ContributionGraphSkeleton />}>
                 <ActivityLog />
               </Suspense>
             </Section>

@@ -27,7 +27,7 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
     let stopped = false;
     const read = async () => {
       try {
-        const response = await fetch("/api/now-playing");
+        const response = await fetch("/api/now-playing", { cache: "no-store" });
         if (!response.ok) return;
         const data: NowPlaying = await response.json();
         if (stopped) return;
@@ -100,9 +100,9 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
           </>
         ) : (
           <span className="prose text-[0.8125rem] text-muted-foreground">
-            {state.user
-              ? "Nothing scrobbled yet."
-              : "Listening is unavailable right now."}
+            {state.error || !state.user
+              ? "Listening is unavailable right now."
+              : "Nothing scrobbled yet."}
           </span>
         )}
       </a>
@@ -115,6 +115,21 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
           {detail}
         </span>
       ) : null}
+    </div>
+  );
+}
+
+export function NowPlayingSkeleton() {
+  return (
+    <div
+      className="panel animate-rise flex items-center gap-4 px-4 py-1.5 sm:px-5 sm:py-2"
+      aria-hidden
+    >
+      <span className="size-12 shrink-0 rounded-full border border-terminal-dim/20 bg-terminal-dim/5" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="h-3 w-28 animate-pulse rounded-sm bg-terminal-dim/10" />
+        <span className="h-2.5 w-44 animate-pulse rounded-sm bg-terminal-dim/10" />
+      </div>
     </div>
   );
 }
