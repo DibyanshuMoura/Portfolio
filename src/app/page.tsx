@@ -3,7 +3,10 @@ import { AnimatedName } from "@/components/animated-name";
 import { Avatar } from "@/components/avatar";
 import { Contact } from "@/components/contact";
 import { Container } from "@/components/container";
-import { ContributionGraph, ContributionGraphSkeleton } from "@/components/contribution-graph";
+import {
+  ContributionGraph,
+  ContributionGraphSkeleton,
+} from "@/components/contribution-graph";
 import { NowPlaying, NowPlayingSkeleton } from "@/components/now-playing";
 import { SectionHeading } from "@/components/section-heading";
 import { SocialLinks } from "@/components/social-links";

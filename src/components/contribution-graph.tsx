@@ -9,6 +9,13 @@ const LEVEL_BG = [
   "bg-level-4",
 ] as const;
 
+const CELL =
+  "h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%]";
+const GRID =
+  "grid grid-flow-col grid-rows-[repeat(7,var(--heatmap-cell))] gap-[var(--heatmap-gap)]";
+const SKELETON_WEEKS = 27;
+const SKELETON_SWATCHES = LEVEL_BG.map(() => "bg-terminal-dim/10");
+
 type Month = Contributions["months"][number];
 
 const TIGHT = 3;
@@ -31,7 +38,20 @@ function ruler(months: Month[], start: number, end: number) {
   return labels;
 }
 
-export function ContributionGraph({ data }: { data: Contributions }) {  const block = Math.ceil(data.weeks.length / 2);
+function Legend({ swatches }: { swatches: readonly string[] }) {
+  return (
+    <div className="mt-3 flex items-center justify-end gap-1.5 text-[0.625rem] text-muted-foreground">
+      <span>less</span>
+      {swatches.map((swatch, index) => (
+        <span key={index} aria-hidden className={`${CELL} ${swatch}`} />
+      ))}
+      <span>more</span>
+    </div>
+  );
+}
+
+export function ContributionGraph({ data }: { data: Contributions }) {
+  const block = Math.ceil(data.weeks.length / 2);
   const blocks = [data.weeks.slice(0, block), data.weeks.slice(block)];
 
   return (
@@ -74,7 +94,7 @@ export function ContributionGraph({ data }: { data: Contributions }) {  const bl
                   )}
                 </div>
 
-                <div className="grid grid-flow-col grid-rows-[repeat(7,var(--heatmap-cell))] gap-[var(--heatmap-gap)]">
+                <div className={GRID}>
                   {weeks.flatMap((week, weekIndex) =>
                     week.map((day, dayIndex) => (
                       <span
@@ -82,7 +102,7 @@ export function ContributionGraph({ data }: { data: Contributions }) {  const bl
                         title={
                           day.date ? `${day.date} · level ${day.level}` : undefined
                         }
-                        className={`h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] ${LEVEL_BG[day.level]}`}
+                        className={`${CELL} ${LEVEL_BG[day.level]}`}
                       />
                     )),
                   )}
@@ -93,17 +113,7 @@ export function ContributionGraph({ data }: { data: Contributions }) {  const bl
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1.5 text-[0.625rem] text-muted-foreground">
-        <span>less</span>
-        {LEVEL_BG.map((bg, level) => (
-          <span
-            key={level}
-            aria-hidden
-            className={`h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] ${bg}`}
-          />
-        ))}
-        <span>more</span>
-      </div>
+      <Legend swatches={LEVEL_BG} />
     </div>
   );
 }
@@ -112,8 +122,8 @@ export function ContributionGraphSkeleton() {
   return (
     <div className="heatmap panel p-6" aria-hidden>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="h-3.5 w-56 animate-pulse rounded-sm bg-terminal-dim/10" />
-        <span className="h-2.5 w-20 animate-pulse rounded-sm bg-terminal-dim/10" />
+        <span className="h-[1.3rem] w-56 animate-pulse rounded-sm bg-terminal-dim/10" />
+        <span className="h-[1.1rem] w-20 animate-pulse rounded-sm bg-terminal-dim/10" />
       </div>
 
       <div className="scroll-x mt-4 pb-1">
@@ -121,12 +131,9 @@ export function ContributionGraphSkeleton() {
           {[0, 1].map((block) => (
             <div key={block} className="w-max animate-pulse">
               <div className="mb-1 h-3" />
-              <div className="grid grid-flow-col grid-rows-[repeat(7,var(--heatmap-cell))] gap-[var(--heatmap-gap)]">
-                {Array.from({ length: 27 * 7 }, (_, cell) => (
-                  <span
-                    key={cell}
-                    className="h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] bg-terminal-dim/10"
-                  />
+              <div className={GRID}>
+                {Array.from({ length: SKELETON_WEEKS * 7 }, (_, cell) => (
+                  <span key={cell} className={`${CELL} bg-terminal-dim/10`} />
                 ))}
               </div>
             </div>
@@ -134,16 +141,7 @@ export function ContributionGraphSkeleton() {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1.5 text-[0.625rem] text-muted-foreground">
-        <span>less</span>
-        {LEVEL_BG.map((level) => (
-          <span
-            key={level}
-            className="h-[var(--heatmap-cell)] w-[var(--heatmap-cell)] rounded-[18%] bg-terminal-dim/10"
-          />
-        ))}
-        <span>more</span>
-      </div>
+      <Legend swatches={SKELETON_SWATCHES} />
     </div>
   );
 }

@@ -361,3 +361,13 @@
   color: var(--color-terminal);
   opacity: 1;
 }
+
+.theme-switching header {
+  background-color: var(--color-background);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.theme-switching body {
+  transition: none;
+}

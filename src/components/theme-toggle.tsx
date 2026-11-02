@@ -3,6 +3,9 @@
 import type { MouseEvent } from "react";
 
 let clickSound: HTMLAudioElement | null = null;
+let themeTransitionId = 0;
+
+type Theme = "light" | "dark";
 
 function playClick() {
   if (!clickSound) {
@@ -14,7 +17,11 @@ function playClick() {
   void clickSound.play().catch(() => {});
 }
 
-function applyTheme(theme: "light" | "dark") {
+function afterPaint(callback: () => void) {
+  requestAnimationFrame(() => requestAnimationFrame(callback));
+}
+
+function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
 
   try {
@@ -22,13 +29,16 @@ function applyTheme(theme: "light" | "dark") {
   } catch {}
 
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "light" ? "#fafafa" : "#0a0a0a");
+  if (meta) {
+    meta.setAttribute("content", theme === "light" ? "#fafafa" : "#0a0a0a");
+  }
 }
 
 function applyTransitionedTheme(
-  theme: "light" | "dark",
+  theme: Theme,
   origin: { x: number; y: number },
 ) {
+  const root = document.documentElement;
   const supportsViewTransition = typeof document.startViewTransition === "function";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -44,17 +54,30 @@ function applyTransitionedTheme(
       Math.max(y, window.innerHeight - y),
     ),
   );
-  document.documentElement.style.setProperty("--theme-reveal-x", `${Math.round(x)}px`);
-  document.documentElement.style.setProperty("--theme-reveal-y", `${Math.round(y)}px`);
-  document.documentElement.style.setProperty("--theme-reveal-max", `${maxRadius + 2}px`);
 
-  document.startViewTransition(() => applyTheme(theme));
+  root.style.setProperty("--theme-reveal-x", `${Math.round(x)}px`);
+  root.style.setProperty("--theme-reveal-y", `${Math.round(y)}px`);
+  root.style.setProperty("--theme-reveal-max", `${maxRadius + 2}px`);
+
+  const id = ++themeTransitionId;
+  root.classList.add("theme-switching");
+
+  const start = () => {
+    const transition = document.startViewTransition(() => applyTheme(theme));
+    const finish = () => {
+      if (id === themeTransitionId) root.classList.remove("theme-switching");
+    };
+    void transition.ready.then(finish, finish);
+  };
+
+  afterPaint(start);
 }
 
 export function ThemeToggle() {
   function toggle(event: MouseEvent<HTMLButtonElement>) {
     playClick();
-    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    const root = document.documentElement;
+    const next: Theme = root.dataset.theme === "light" ? "dark" : "light";
     const box = event.currentTarget.getBoundingClientRect();
     applyTransitionedTheme(next, {
       x: box.left + box.width / 2,

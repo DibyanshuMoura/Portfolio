@@ -14,7 +14,7 @@ export type NowPlaying = {
   error?: boolean;
 };
 
-type RecentImage = { "#text"?: string; size?: string };
+type RecentImage = { "#text"?: string };
 
 type RecentTrack = {
   name?: string;

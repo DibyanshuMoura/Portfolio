@@ -5,6 +5,7 @@ import { Glyph } from "@/components/glyph";
 import type { NowPlaying, Scrobble } from "@/lib/lastfm";
 
 const subscribe = () => () => {};
+const ART_FRAME = "size-12 rounded-full border border-terminal-dim/20";
 
 function ago(ms: number) {
   const minutes = Math.max(1, Math.round((Date.now() - ms) / 60000));
@@ -15,10 +16,16 @@ function ago(ms: number) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+function describe(latest: Scrobble, mounted: boolean) {
+  if (latest.nowPlaying) return "playing";
+  if (!mounted || !latest.scrobbledAt) return "on last.fm";
+  return ago(latest.scrobbledAt);
+}
+
 export function NowPlaying({ initial }: { initial: NowPlaying }) {
   const [state, setState] = useState(initial);
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
-  const [failedArt, setFailedArt] = useState<string>("");
+  const [failedArt, setFailedArt] = useState("");
 
   const artwork = state.latest?.artwork ?? "";
   const artFailed = artwork !== "" && failedArt === artwork;
@@ -31,9 +38,10 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
         if (!response.ok) return;
         const data: NowPlaying = await response.json();
         if (stopped) return;
-        setState((previous) =>
-          data.latest || !previous.latest ? data : previous,
-        );
+        setState((previous) => {
+          if (!data.latest && previous.latest) return previous;
+          return data;
+        });
       } catch {}
     };
     const poll = setInterval(read, 30_000);
@@ -44,22 +52,26 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
     };
   }, []);
 
-  const latest: Scrobble | null = state.latest;
+  const latest = state.latest;
 
   const link =
     latest?.url ||
-    (state.user ? `https://www.last.fm/user/${state.user}` : "https://www.last.fm");
-  const detail = latest
-    ? latest.nowPlaying
-      ? "playing"
-      : mounted && latest.scrobbledAt
-        ? ago(latest.scrobbledAt)
-        : "on last.fm"
-    : "";
+    (state.user
+      ? `https://www.last.fm/user/${state.user}`
+      : "https://www.last.fm");
+  const detail = latest ? describe(latest, mounted) : "";
+  const empty = state.error || !state.user
+    ? "Listening is unavailable right now."
+    : "Nothing scrobbled yet.";
 
   return (
     <div className="panel animate-rise flex items-center gap-4 px-4 py-1.5 sm:px-5 sm:py-2">
-      <a href={link} target="_blank" rel="noopener noreferrer" className="shrink-0">
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="shrink-0"
+      >
         {artwork && !artFailed ? (
           <img
             src={artwork}
@@ -68,12 +80,14 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
             height={48}
             decoding="async"
             onError={() => setFailedArt(artwork)}
-            className={`size-12 rounded-full border border-terminal-dim/20 bg-terminal-dim/5 object-cover ${
+            className={`${ART_FRAME} bg-terminal-dim/5 object-cover ${
               latest?.nowPlaying ? "animate-music-spin" : ""
             }`}
           />
         ) : (
-          <span className="flex size-12 items-center justify-center rounded-full border border-terminal-dim/20 text-terminal-dim/40">
+          <span
+            className={`${ART_FRAME} flex items-center justify-center text-terminal-dim/40`}
+          >
             <Glyph
               name="music"
               className={`size-5 ${latest?.nowPlaying ? "animate-music-spin" : ""}`}
@@ -100,9 +114,7 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
           </>
         ) : (
           <span className="prose text-[0.8125rem] text-muted-foreground">
-            {state.error || !state.user
-              ? "Listening is unavailable right now."
-              : "Nothing scrobbled yet."}
+            {empty}
           </span>
         )}
       </a>
@@ -110,7 +122,10 @@ export function NowPlaying({ initial }: { initial: NowPlaying }) {
       {latest ? (
         <span className="flex items-center gap-1.5 leading-none whitespace-nowrap text-[0.6875rem] text-terminal-dim">
           {latest.nowPlaying ? (
-            <span className="mt-px size-1.5 rounded-full bg-terminal animate-pulse" aria-hidden />
+            <span
+              className="mt-px size-1.5 rounded-full bg-terminal animate-pulse"
+              aria-hidden
+            />
           ) : null}
           {detail}
         </span>
@@ -125,10 +140,10 @@ export function NowPlayingSkeleton() {
       className="panel animate-rise flex items-center gap-4 px-4 py-1.5 sm:px-5 sm:py-2"
       aria-hidden
     >
-      <span className="size-12 shrink-0 rounded-full border border-terminal-dim/20 bg-terminal-dim/5" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="h-3 w-28 animate-pulse rounded-sm bg-terminal-dim/10" />
-        <span className="h-2.5 w-44 animate-pulse rounded-sm bg-terminal-dim/10" />
+      <span className={`${ART_FRAME} shrink-0 bg-terminal-dim/5`} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="h-[1.3rem] w-28 animate-pulse rounded-sm bg-terminal-dim/10" />
+        <span className="h-[1.2rem] w-44 animate-pulse rounded-sm bg-terminal-dim/10" />
       </div>
     </div>
   );
